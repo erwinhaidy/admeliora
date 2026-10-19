@@ -1,0 +1,1489 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Ad Meliora - Personal Transformation Engine</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Chart.js for iOS Style Smooth Graphs -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- html2canvas and jsPDF for Image and PDF Exporting -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            ios: {
+              bg: '#000000',
+              card: '#1c1c1e',
+              cardSecondary: '#2c2c2e',
+              cardTertiary: '#3a3a3c',
+              border: 'rgba(255, 255, 255, 0.1)',
+              green: '#30d158',
+              blue: '#0a84ff',
+              cyan: '#64d2ff',
+              orange: '#ff9f0a',
+              red: '#ff453a',
+              purple: '#bf5af2',
+              pink: '#ff375f'
+            }
+          },
+          fontFamily: {
+            sans: ['-apple-system', 'BlinkMacSystemFont', 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #000000;
+      color: #ffffff;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    .ios-blur {
+      background: rgba(28, 28, 30, 0.78);
+      backdrop-filter: blur(25px) saturate(190%);
+      -webkit-backdrop-filter: blur(25px) saturate(190%);
+    }
+
+    .ios-blur-bar {
+      background: rgba(18, 18, 20, 0.85);
+      backdrop-filter: blur(30px) saturate(200%);
+      -webkit-backdrop-filter: blur(30px) saturate(200%);
+    }
+
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    .ios-active {
+      transition: transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.15s ease;
+    }
+    .ios-active:active {
+      transform: scale(0.96);
+      opacity: 0.8;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+    }
+
+    .pb-safe {
+      padding-bottom: env(safe-area-inset-bottom, 20px);
+    }
+    .pt-safe {
+      padding-top: env(safe-area-inset-top, 12px);
+    }
+  </style>
+</head>
+<body class="h-full bg-black text-white flex flex-col justify-between selection:bg-ios-blue/30 overflow-hidden">
+
+  <div class="mx-auto w-full max-w-md h-full flex flex-col bg-black relative overflow-hidden shadow-2xl border-x border-white/5">
+
+    <!-- Top Navigation Header -->
+    <header class="pt-safe px-5 pt-3 pb-2 z-30 sticky top-0 ios-blur border-b border-white/10 flex items-center justify-between">
+      <div>
+        <p class="text-[11px] font-semibold text-ios-green tracking-wider uppercase">Ad Meliora</p>
+        <h1 id="page-title" class="text-2xl font-bold tracking-tight text-white">Dashboard</h1>
+      </div>
+
+      <div class="flex items-center space-x-2">
+        <button onclick="openDriveSyncModal()" class="w-10 h-10 rounded-full bg-ios-cardSecondary border border-white/10 flex items-center justify-center ios-active shadow-sm text-ios-cyan" title="Backup & Export">
+          <i data-lucide="share-2" class="w-5 h-5"></i>
+        </button>
+        <button onclick="openProfileModal()" class="w-10 h-10 rounded-full bg-ios-cardSecondary border border-white/10 flex items-center justify-center ios-active shadow-sm text-ios-blue">
+          <i data-lucide="user" class="w-5 h-5"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- App Content Scroll Area -->
+    <main id="app-content" class="flex-1 overflow-y-auto no-scrollbar px-4 pt-3 pb-28 space-y-5">
+      <!-- Content View inserted dynamically -->
+    </main>
+
+    <!-- Bottom Navigation Bar -->
+    <nav class="fixed bottom-0 max-w-md w-full z-40 ios-blur-bar border-t border-white/10 pb-safe pt-1.5 px-2">
+      <div class="grid grid-cols-4 gap-1 text-center">
+        
+        <button onclick="switchTab('dashboard')" id="tab-dashboard" class="flex flex-col items-center justify-center py-1 rounded-2xl ios-active transition-all text-ios-blue">
+          <div class="relative">
+            <i data-lucide="layout-grid" class="w-6 h-6 stroke-[2.2]"></i>
+            <span id="score-dot" class="absolute -top-0.5 -right-1 w-2.5 h-2.5 rounded-full bg-ios-green"></span>
+          </div>
+          <span class="text-[10px] font-medium mt-1">Summary</span>
+        </button>
+
+        <button onclick="switchTab('progress')" id="tab-progress" class="flex flex-col items-center justify-center py-1 rounded-2xl ios-active transition-all text-neutral-400">
+          <i data-lucide="trending-up" class="w-6 h-6 stroke-[2]"></i>
+          <span class="text-[10px] font-medium mt-1">Progress</span>
+        </button>
+
+        <button onclick="switchTab('meals')" id="tab-meals" class="flex flex-col items-center justify-center py-1 rounded-2xl ios-active transition-all text-neutral-400">
+          <i data-lucide="utensils" class="w-6 h-6 stroke-[2]"></i>
+          <span class="text-[10px] font-medium mt-1">Meals</span>
+        </button>
+
+        <button onclick="switchTab('fitness')" id="tab-fitness" class="flex flex-col items-center justify-center py-1 rounded-2xl ios-active transition-all text-neutral-400">
+          <i data-lucide="activity" class="w-6 h-6 stroke-[2]"></i>
+          <span class="text-[10px] font-medium mt-1">Fitness</span>
+        </button>
+
+      </div>
+    </nav>
+  </div>
+
+  <!-- Profile & Metrics Modal -->
+  <div id="profile-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-end sm:items-center justify-center p-0 sm:p-4 transition-opacity">
+    <div class="bg-ios-card border border-white/10 w-full max-w-md rounded-t-[32px] sm:rounded-[32px] p-6 space-y-5 max-h-[90vh] overflow-y-auto no-scrollbar">
+      <div class="flex justify-between items-center border-b border-white/10 pb-3">
+        <div>
+          <h2 class="text-xl font-bold">Body & Target Setup</h2>
+          <p class="text-xs text-neutral-400">Recalculates Mifflin-St Jeor TDEE & Projections</p>
+        </div>
+        <button onclick="closeProfileModal()" class="w-8 h-8 rounded-full bg-ios-cardSecondary flex items-center justify-center text-neutral-400 hover:text-white">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <div class="space-y-4 text-sm">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs text-neutral-400 font-medium">Age</label>
+            <input type="number" id="user-age" class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl px-3 py-2 text-white mt-1">
+          </div>
+          <div>
+            <label class="text-xs text-neutral-400 font-medium">Gender</label>
+            <select id="user-gender" class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl px-3 py-2 text-white mt-1">
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-xs text-neutral-400 font-medium">Height (cm)</label>
+            <input type="number" id="user-height" class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl px-3 py-2 text-white mt-1">
+          </div>
+          <div>
+            <label class="text-xs text-neutral-400 font-medium">Weight (kg)</label>
+            <input type="number" id="user-weight" step="0.1" class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl px-3 py-2 text-white mt-1">
+          </div>
+        </div>
+
+        <div>
+          <label class="text-xs text-neutral-400 font-medium">Activity Level</label>
+          <select id="user-activity" class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl px-3 py-2 text-white mt-1">
+            <option value="1.2">Sedentary (Office job)</option>
+            <option value="1.375">Light Exercise (1-3 days/wk)</option>
+            <option value="1.55">Moderate Exercise (3-5 days/wk)</option>
+            <option value="1.725">Heavy Exercise (6-7 days/wk)</option>
+          </select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs text-neutral-400 font-medium">Target Weight (kg)</label>
+            <input type="number" id="user-target-weight" step="0.1" class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl px-3 py-2 text-white mt-1">
+          </div>
+          <div>
+            <label class="text-xs text-neutral-400 font-medium">Daily Deficit (kcal)</label>
+            <input type="number" id="user-deficit" step="50" class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl px-3 py-2 text-white mt-1">
+          </div>
+        </div>
+
+        <div class="p-3 bg-ios-cardSecondary border border-white/5 rounded-2xl space-y-2">
+          <div class="flex justify-between items-center">
+            <label class="text-xs text-ios-cyan font-bold">Model Target Air Minum</label>
+            <span class="text-[10px] text-neutral-400">Riset Hydration</span>
+          </div>
+          <select id="user-water-mode" onchange="toggleCustomWaterInput()" class="w-full bg-ios-card border border-white/10 rounded-xl px-3 py-2 text-white text-xs">
+            <option value="dynamic">Dinamis (35ml/kg Berat + Tambahan Latihan)</option>
+            <option value="custom">Manual (Custom Target)</option>
+          </select>
+          <div id="custom-water-container" class="hidden pt-1">
+            <label class="text-xs text-neutral-400 font-medium">Target Air Manual (ml)</label>
+            <input type="number" id="user-water-goal" step="100" placeholder="contoh: 3000" class="w-full bg-ios-card border border-white/10 rounded-xl px-3 py-2 text-white mt-1">
+          </div>
+        </div>
+
+        <button onclick="saveProfile()" class="w-full py-3 bg-ios-blue text-white font-bold rounded-xl ios-active mt-2">
+          Simpan Profil & Recalculate
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Export & Backup Modal -->
+  <div id="drive-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-end sm:items-center justify-center p-0 sm:p-4 transition-opacity">
+    <div class="bg-ios-card border border-white/10 w-full max-w-md rounded-t-[32px] sm:rounded-[32px] p-6 space-y-5 max-h-[90vh] overflow-y-auto no-scrollbar">
+      <div class="flex justify-between items-center border-b border-white/10 pb-3">
+        <div class="flex items-center space-x-2">
+          <div class="w-8 h-8 rounded-xl bg-ios-cyan/20 flex items-center justify-center text-ios-cyan">
+            <i data-lucide="share-2" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h2 class="text-xl font-bold">Export & Backup Data</h2>
+            <p class="text-xs text-neutral-400">Unduh Laporan PDF, Foto, & Backup JSON</p>
+          </div>
+        </div>
+        <button onclick="closeDriveSyncModal()" class="w-8 h-8 rounded-full bg-ios-cardSecondary flex items-center justify-center text-neutral-400 hover:text-white">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <div class="space-y-4 text-sm">
+        <div class="p-4 rounded-2xl bg-ios-cardSecondary border border-white/5 space-y-3">
+          <h3 class="text-xs font-bold text-ios-cyan uppercase tracking-wider">Eksport Ringkasan Progress</h3>
+          <p class="text-xs text-neutral-300">
+            Simpan atau bagikan kartu ringkasan kesehatan Anda dalam bentuk file Gambar (PNG) atau Laporan Dokumen (PDF).
+          </p>
+          <div class="grid grid-cols-2 gap-3 pt-1">
+            <button onclick="exportSummaryAsImage()" class="p-3 bg-ios-card border border-white/10 rounded-xl flex items-center justify-center space-x-2 ios-active hover:border-ios-purple/50 text-ios-purple">
+              <i data-lucide="image" class="w-4 h-4"></i>
+              <span class="text-xs font-bold text-white">Ekspor Foto</span>
+            </button>
+            <button onclick="exportSummaryAsPDF()" class="p-3 bg-ios-card border border-white/10 rounded-xl flex items-center justify-center space-x-2 ios-active hover:border-ios-red/50 text-ios-red">
+              <i data-lucide="file-text" class="w-4 h-4"></i>
+              <span class="text-xs font-bold text-white">Ekspor PDF</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-ios-cardSecondary border border-white/5 space-y-3">
+          <h3 class="text-xs font-bold text-neutral-400 uppercase tracking-wider">Cadangan JSON</h3>
+          <div class="grid grid-cols-2 gap-3">
+            <button onclick="downloadBackupFile()" class="p-3 bg-ios-card border border-white/10 rounded-xl flex flex-col items-center justify-center space-y-1 ios-active hover:border-ios-blue/50">
+              <i data-lucide="download" class="w-5 h-5 text-ios-blue"></i>
+              <span class="text-xs font-bold text-white">Unduh JSON</span>
+            </button>
+
+            <label class="p-3 bg-ios-card border border-white/10 rounded-xl flex flex-col items-center justify-center space-y-1 ios-active cursor-pointer hover:border-ios-green/50">
+              <i data-lucide="upload" class="w-5 h-5 text-ios-green"></i>
+              <span class="text-xs font-bold text-white">Pulihkan JSON</span>
+              <input type="file" id="import-file-input" accept=".json" onchange="uploadBackupFile(event)" class="hidden">
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const DEFAULT_STATE = {
+      profile: {
+        age: 26,
+        gender: 'male',
+        height: 175,
+        weight: 78.5,
+        targetWeight: 72.0,
+        deficit: 500,
+        activity: 1.375,
+        targetWaist: 80,
+        currentWaist: 88,
+        waterTargetMode: 'dynamic'
+      },
+      water: {
+        current: 1750,
+        goal: 3000,
+        lastLoggedDate: ''
+      },
+      meals: [
+        { id: '1', name: 'Oatmeal & Protein Whey', calories: 420, protein: 32, carbs: 54, fat: 8, category: 'Breakfast', date: '2026-10-19' },
+        { id: '2', name: 'Nasi Merah & Dada Ayam Bakar', calories: 580, protein: 48, carbs: 52, fat: 12, category: 'Lunch', date: '2026-10-19' }
+      ],
+      fitness: {
+        runs: [
+          { id: 'r1', date: '2026-10-15', distance: 5.2, duration: '28:15', pace: '5:26', heartRate: 152, calories: 340 },
+          { id: 'r2', date: '2026-10-18', distance: 7.0, duration: '39:10', pace: '5:35', heartRate: 158, calories: 480 }
+        ]
+      },
+      milestones: [
+        { id: 'm1', title: 'Break Below 75kg', targetValue: 75.0, type: 'weight', completed: true },
+        { id: 'm2', title: 'Reach 85cm Waist', targetValue: 85, type: 'waist', completed: false },
+        { id: 'm3', title: 'Ultimate Goal: 72kg Abs', targetValue: 72.0, type: 'weight', completed: false }
+      ],
+      weightLogs: [
+        { date: '2026-10-01', weight: 81.0, waist: 91 },
+        { date: '2026-10-08', weight: 79.8, waist: 89.5 },
+        { date: '2026-10-12', weight: 79.2, waist: 89.0 },
+        { date: '2026-10-15', weight: 78.8, waist: 88.5 },
+        { date: '2026-10-17', weight: 78.6, waist: 88.2 },
+        { date: '2026-10-19', weight: 78.5, waist: 88 }
+      ],
+      subViews: {
+        progress: 'weight'
+      }
+    };
+
+    let weightChartInstance = null;
+    let weeklySparklineInstance = null;
+    let editingRunId = null;
+
+    function getTodayString() {
+      try {
+        const now = new Date();
+        const options = { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit' };
+        const formatter = new Intl.DateTimeFormat('sv-SE', options);
+        return formatter.format(now);
+      } catch (e) {
+        return new Date().toISOString().slice(0, 10);
+      }
+    }
+
+    function formatDateDisplay(dateStr) {
+      if (!dateStr) return '';
+      try {
+        const d = new Date(dateStr + (dateStr.includes('T') ? '' : 'T00:00:00'));
+        if (isNaN(d.getTime())) return dateStr;
+        return d.toLocaleDateString('id-ID', { timeZone: 'Asia/Jakarta', day: 'numeric', month: 'short' });
+      } catch (e) {
+        return dateStr;
+      }
+    }
+
+    function checkDayChange() {
+      try {
+        const todayWIB = getTodayString();
+        if (appState.water.lastLoggedDate !== todayWIB) {
+          appState.water.current = 0;
+          appState.water.lastLoggedDate = todayWIB;
+          saveState();
+        }
+      } catch (e) {
+        console.error("Error in checkDayChange:", e);
+      }
+    }
+
+    function getWibDateString(d) {
+      try {
+        const formatter = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Jakarta' });
+        return formatter.format(d);
+      } catch (e) {
+        return d.toISOString().slice(0, 10);
+      }
+    }
+
+    function calculateStreaks() {
+      try {
+        const todayStr = getTodayString();
+        const mealDates = new Set((appState.meals || []).map(m => m.date));
+        let mealStreak = 0;
+        let currMeal = new Date(todayStr + 'T00:00:00');
+        let currStr = getWibDateString(currMeal);
+        if (!mealDates.has(currStr)) {
+          currMeal.setDate(currMeal.getDate() - 1);
+          currStr = getWibDateString(currMeal);
+        }
+        while (mealDates.has(currStr)) {
+          mealStreak++;
+          currMeal.setDate(currMeal.getDate() - 1);
+          currStr = getWibDateString(currMeal);
+        }
+
+        const waterGoal = getDynamicWaterGoal();
+        let waterStreak = (appState.water && appState.water.current >= waterGoal) ? 1 : 0;
+
+        const weightDates = new Set((appState.weightLogs || []).map(w => w.date));
+        let weightStreak = 0;
+        let currWeight = new Date(todayStr + 'T00:00:00');
+        let currWStr = getWibDateString(currWeight);
+        if (!weightDates.has(currWStr)) {
+          currWeight.setDate(currWeight.getDate() - 1);
+          currWStr = getWibDateString(currWeight);
+        }
+        while (weightDates.has(currWStr)) {
+          weightStreak++;
+          currWeight.setDate(currWeight.getDate() - 1);
+          currWStr = getWibDateString(currWeight);
+        }
+
+        return { mealStreak, waterStreak, weightStreak };
+      } catch (e) {
+        console.error("Error calculating streaks:", e);
+        return { mealStreak: 0, waterStreak: 0, weightStreak: 0 };
+      }
+    }
+
+    function calculateMilestoneEstDate(targetValue, type) {
+      try {
+        const currentVal = type === 'weight' ? (appState.profile.weight || 70) : (appState.profile.currentWaist || 88);
+        const diff = currentVal - targetValue;
+        if (diff <= 0) return 'Sudah Tercapai! 🎉';
+
+        const dailyDeficit = appState.profile.deficit || 500;
+        const kgPerDay = dailyDeficit / 7700;
+        const daysNeeded = Math.ceil(diff / (kgPerDay > 0 ? kgPerDay : 0.05));
+
+        const projectedDate = new Date();
+        projectedDate.setDate(projectedDate.getDate() + daysNeeded);
+
+        return projectedDate.toLocaleDateString('id-ID', { timeZone: 'Asia/Jakarta', day: 'numeric', month: 'short', year: 'numeric' });
+      } catch (e) {
+        return 'TBD';
+      }
+    }
+
+    function loadAppState() {
+      try {
+        const saved = localStorage.getItem('ad_meliora_ios_state');
+        if (!saved) return DEFAULT_STATE;
+        const parsed = JSON.parse(saved);
+        return {
+          ...DEFAULT_STATE,
+          ...parsed,
+          profile: { ...DEFAULT_STATE.profile, ...(parsed.profile || {}) },
+          water: { ...DEFAULT_STATE.water, ...(parsed.water || {}) },
+          fitness: { ...DEFAULT_STATE.fitness, ...(parsed.fitness || {}) },
+          subViews: { ...DEFAULT_STATE.subViews, ...(parsed.subViews || {}) }
+        };
+      } catch (e) {
+        console.error("Failed to parse saved state, falling back to default", e);
+        return DEFAULT_STATE;
+      }
+    }
+
+    let appState = loadAppState();
+
+    function saveState() {
+      try {
+        localStorage.setItem('ad_meliora_ios_state', JSON.stringify(appState));
+        updateScoreDot();
+      } catch (e) {
+        console.error("Error saving state:", e);
+      }
+    }
+
+    function getDynamicWaterGoal() {
+      try {
+        if (appState.profile.waterTargetMode === 'custom' && appState.water.goal) {
+          return appState.water.goal;
+        }
+
+        const baseHydration = (appState.profile.weight || 70) * 35;
+        let workoutExtra = 0;
+        const runs = appState.fitness.runs || [];
+        runs.forEach(r => {
+          if (r.duration) {
+            const parts = r.duration.split(':');
+            if (parts.length === 2) {
+              const mins = (parseInt(parts[0]) || 0) + ((parseInt(parts[1]) || 0) / 60);
+              workoutExtra += mins * 12;
+            }
+          }
+        });
+
+        return Math.round((baseHydration + workoutExtra) / 50) * 50;
+      } catch (e) {
+        return 3000;
+      }
+    }
+
+    function calculateTDEE() {
+      try {
+        const { weight = 70, height = 170, age = 25, gender = 'male', activity = 1.375, deficit = 500 } = appState.profile;
+        let bmr = (10 * weight) + (6.25 * height) - (5 * age);
+        bmr += (gender === 'male') ? 5 : -161;
+        const tdee = Math.round(bmr * parseFloat(activity));
+        const targetCalories = Math.max(1000, tdee - deficit);
+        return { bmr: Math.round(bmr), tdee, targetCalories };
+      } catch (e) {
+        return { bmr: 1600, tdee: 2200, targetCalories: 1700 };
+      }
+    }
+
+    function calculateAdMelioraScore() {
+      try {
+        const activeGoal = getDynamicWaterGoal();
+        const waterScore = Math.min(40, ((appState.water.current || 0) / (activeGoal || 3000)) * 40);
+
+        const todayStr = getTodayString();
+        const todayMeals = (appState.meals || []).filter(m => m.date === todayStr);
+        const totalCaloriesLogged = todayMeals.reduce((sum, m) => sum + (m.calories || 0), 0);
+        const totalCaloriesBurned = (appState.fitness.runs || []).filter(r => r.date === todayStr).reduce((sum, r) => sum + (r.calories || 0), 0);
+        const netCalories = totalCaloriesLogged - totalCaloriesBurned;
+        const { targetCalories } = calculateTDEE();
+        const calorieRatio = targetCalories > 0 ? (netCalories / targetCalories) : 0;
+        
+        let mealScore = 0;
+        if (calorieRatio >= 0.5 && calorieRatio <= 1.05) mealScore = 35;
+        else if (calorieRatio > 0) mealScore = 20;
+
+        const fitnessScore = (appState.fitness.runs && appState.fitness.runs.length > 0) ? 25 : 10;
+
+        return Math.min(100, Math.round(waterScore + mealScore + fitnessScore));
+      } catch (e) {
+        return 50;
+      }
+    }
+
+    function getWeeklyStats() {
+      try {
+        const logs = appState.weightLogs || [];
+        if (logs.length === 0) {
+          return {
+            change7d: '0.0',
+            avg7d: (appState.profile.weight || 70).toFixed(1),
+            sparklineLabels: ['Today'],
+            sparklineData: [appState.profile.weight || 70]
+          };
+        }
+
+        const recentLogs = logs.slice(-7);
+        const latestWeight = recentLogs[recentLogs.length - 1].weight;
+        const start7dWeight = recentLogs[0].weight;
+        const change7d = (latestWeight - start7dWeight).toFixed(1);
+
+        const sum = recentLogs.reduce((acc, curr) => acc + (curr.weight || 0), 0);
+        const avg7d = (sum / recentLogs.length).toFixed(1);
+
+        const sparklineLabels = recentLogs.map(l => formatDateDisplay(l.date));
+        const sparklineData = recentLogs.map(l => l.weight);
+
+        return { change7d, avg7d, sparklineLabels, sparklineData };
+      } catch (e) {
+        return { change7d: '0.0', avg7d: '70.0', sparklineLabels: ['Today'], sparklineData: [70] };
+      }
+    }
+
+    function updateScoreDot() {
+      const score = calculateAdMelioraScore();
+      const dot = document.getElementById('score-dot');
+      if (dot) {
+        if (score >= 80) dot.className = "absolute -top-0.5 -right-1 w-2.5 h-2.5 rounded-full bg-ios-green";
+        else if (score >= 50) dot.className = "absolute -top-0.5 -right-1 w-2.5 h-2.5 rounded-full bg-ios-orange";
+        else dot.className = "absolute -top-0.5 -right-1 w-2.5 h-2.5 rounded-full bg-ios-red";
+      }
+    }
+
+    function openProfileModal() {
+      document.getElementById('user-age').value = appState.profile.age || 26;
+      document.getElementById('user-gender').value = appState.profile.gender || 'male';
+      document.getElementById('user-height').value = appState.profile.height || 175;
+      document.getElementById('user-weight').value = appState.profile.weight || 78.5;
+      document.getElementById('user-activity').value = appState.profile.activity || 1.375;
+      document.getElementById('user-target-weight').value = appState.profile.targetWeight || 72.0;
+      document.getElementById('user-deficit').value = appState.profile.deficit || 500;
+      document.getElementById('user-water-mode').value = appState.profile.waterTargetMode || 'dynamic';
+      document.getElementById('user-water-goal').value = appState.water.goal || 3000;
+      
+      toggleCustomWaterInput();
+      document.getElementById('profile-modal').classList.remove('hidden');
+    }
+
+    function toggleCustomWaterInput() {
+      const mode = document.getElementById('user-water-mode').value;
+      const container = document.getElementById('custom-water-container');
+      if (mode === 'custom') container.classList.remove('hidden');
+      else container.classList.add('hidden');
+    }
+
+    function closeProfileModal() {
+      document.getElementById('profile-modal').classList.add('hidden');
+    }
+
+    function saveProfile() {
+      appState.profile.age = parseInt(document.getElementById('user-age').value) || 26;
+      appState.profile.gender = document.getElementById('user-gender').value || 'male';
+      appState.profile.height = parseFloat(document.getElementById('user-height').value) || 175;
+      appState.profile.weight = parseFloat(document.getElementById('user-weight').value) || 78.5;
+      appState.profile.activity = parseFloat(document.getElementById('user-activity').value) || 1.375;
+      appState.profile.targetWeight = parseFloat(document.getElementById('user-target-weight').value) || 72.0;
+      appState.profile.deficit = parseInt(document.getElementById('user-deficit').value) || 500;
+      appState.profile.waterTargetMode = document.getElementById('user-water-mode').value;
+      appState.water.goal = parseInt(document.getElementById('user-water-goal').value) || 3000;
+      
+      saveState();
+      closeProfileModal();
+      renderView();
+    }
+
+    function openDriveSyncModal() {
+      document.getElementById('drive-modal').classList.remove('hidden');
+    }
+
+    function closeDriveSyncModal() {
+      document.getElementById('drive-modal').classList.add('hidden');
+    }
+
+    function downloadBackupFile() {
+      try {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState, null, 2));
+        const downloadAnchor = document.createElement('a');
+        downloadAnchor.setAttribute("href", dataStr);
+        downloadAnchor.setAttribute("download", `ad_meliora_backup_${new Date().toISOString().slice(0,10)}.json`);
+        document.body.appendChild(downloadAnchor);
+        downloadAnchor.click();
+        downloadAnchor.remove();
+      } catch (e) {
+        console.error("Download failed", e);
+      }
+    }
+
+    function uploadBackupFile(event) {
+      try {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          try {
+            appState = JSON.parse(e.target.result);
+            saveState();
+            renderView();
+            closeDriveSyncModal();
+          } catch (err) {
+            console.error('Format JSON tidak valid:', err);
+          }
+        };
+        reader.readAsText(file);
+      } catch (e) {
+        console.error("Upload failed", e);
+      }
+    }
+
+    async function exportSummaryAsImage() {
+      const targetEl = document.getElementById('app-content');
+      if (!targetEl) return;
+      try {
+        const canvas = await html2canvas(targetEl, {
+          backgroundColor: '#000000',
+          scale: 2,
+          useCORS: true,
+          logging: false
+        });
+        
+        const imageURI = canvas.toDataURL('image/png');
+        const link = document.createElement('a');
+        link.download = `ad_meliora_progress_${new Date().toISOString().slice(0,10)}.png`;
+        link.href = imageURI;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+      } catch (e) {
+        console.error('Failed to export photo:', e);
+      }
+    }
+
+    async function exportSummaryAsPDF() {
+      const targetEl = document.getElementById('app-content');
+      if (!targetEl || !window.jspdf) return;
+
+      try {
+        const canvas = await html2canvas(targetEl, {
+          backgroundColor: '#000000',
+          scale: 2,
+          useCORS: true,
+          logging: false
+        });
+
+        const imgData = canvas.toDataURL('image/png');
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const imgProps = pdf.getImageProperties(imgData);
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+        pdf.save(`ad_meliora_report_${new Date().toISOString().slice(0,10)}.pdf`);
+      } catch (e) {
+        console.error('Failed to export PDF:', e);
+      }
+    }
+
+    let currentTab = 'dashboard';
+    function switchTab(tab) {
+      currentTab = tab;
+      
+      const tabs = ['dashboard', 'progress', 'meals', 'fitness'];
+      tabs.forEach(t => {
+        const btn = document.getElementById(`tab-${t}`);
+        if (!btn) return;
+        if (t === tab) {
+          btn.className = "flex flex-col items-center justify-center py-1 rounded-2xl ios-active transition-all text-ios-blue scale-105";
+        } else {
+          btn.className = "flex flex-col items-center justify-center py-1 rounded-2xl ios-active transition-all text-neutral-400 opacity-70";
+        }
+      });
+
+      const pageTitle = document.getElementById('page-title');
+      if (pageTitle) {
+        if (tab === 'dashboard') pageTitle.innerText = 'Dashboard';
+        else if (tab === 'progress') pageTitle.innerText = 'Body Progress';
+        else if (tab === 'meals') pageTitle.innerText = 'Catatan Makanan';
+        else if (tab === 'fitness') pageTitle.innerText = 'Fitness Log';
+      }
+
+      renderView();
+    }
+
+    function renderView() {
+      const container = document.getElementById('app-content');
+      if (!container) return;
+      container.innerHTML = '';
+
+      if (currentTab === 'dashboard') renderDashboard(container);
+      else if (currentTab === 'progress') renderProgress(container);
+      else if (currentTab === 'meals') renderMeals(container);
+      else if (currentTab === 'fitness') renderFitness(container);
+
+      if (window.lucide) {
+        lucide.createIcons();
+      }
+    }
+
+    function renderDashboard(container) {
+      checkDayChange();
+      const score = calculateAdMelioraScore();
+      const { bmr, tdee, targetCalories } = calculateTDEE();
+      
+      const todayStr = getTodayString();
+      const todayMeals = (appState.meals || []).filter(m => m.date === todayStr);
+      const totalLoggedCals = todayMeals.reduce((sum, m) => sum + (m.calories || 0), 0);
+      const totalBurnedCals = (appState.fitness.runs || []).filter(r => r.date === todayStr).reduce((sum, r) => sum + (r.calories || 0), 0);
+      const netCals = totalLoggedCals - totalBurnedCals;
+      const remainingCals = targetCalories - netCals;
+
+      const waterGoal = getDynamicWaterGoal();
+      const waterPct = waterGoal > 0 ? Math.min(100, Math.round(((appState.water.current || 0) / waterGoal) * 100)) : 0;
+
+      const weeklyStats = getWeeklyStats();
+      const streaks = calculateStreaks();
+
+      container.innerHTML = `
+        <!-- Ad Meliora Score Widget -->
+        <div class="bg-ios-card border border-white/10 rounded-[26px] p-5 shadow-xl relative overflow-hidden">
+          <div class="flex justify-between items-start">
+            <div>
+              <p class="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Discipline & Health Score</p>
+              <h2 class="text-4xl font-extrabold mt-1 text-white tracking-tight">${score} <span class="text-lg font-normal text-neutral-400">/ 100</span></h2>
+            </div>
+            <div class="w-14 h-14 rounded-full border-4 ${score >= 80 ? 'border-ios-green text-ios-green' : 'border-ios-orange text-ios-orange'} flex items-center justify-center font-bold text-lg bg-white/5">
+              ${score}%
+            </div>
+          </div>
+          <p class="text-xs text-neutral-400 mt-3 border-t border-white/5 pt-3 flex justify-between items-center">
+            <span>${score >= 80 ? '🔥 Performansi tinggi!' : '⚡ Catat makanan & penuhi hidrasi.'}</span>
+            <span class="text-[10px] text-ios-cyan font-semibold">WIB (UTC+7)</span>
+          </p>
+        </div>
+
+        <!-- Total Streaks Summary Widget -->
+        <div class="bg-ios-card border border-white/10 rounded-[26px] p-4 space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-neutral-400 flex items-center gap-1.5">
+              <i data-lucide="flame" class="w-4 h-4 text-ios-orange"></i> Total Streaks Hari
+            </h3>
+            <span class="text-[10px] text-ios-green font-semibold">Aktif Hari Ini</span>
+          </div>
+          <div class="grid grid-cols-3 gap-2">
+            <div class="bg-ios-cardSecondary border border-white/5 rounded-2xl p-2.5 text-center">
+              <span class="text-[9px] text-neutral-400 uppercase font-semibold block">Makanan</span>
+              <span class="text-lg font-extrabold text-ios-orange">🔥 ${streaks.mealStreak} <span class="text-xs font-normal text-neutral-400">hr</span></span>
+            </div>
+            <div class="bg-ios-cardSecondary border border-white/5 rounded-2xl p-2.5 text-center">
+              <span class="text-[9px] text-neutral-400 uppercase font-semibold block">Hidrasi</span>
+              <span class="text-lg font-extrabold text-ios-cyan">💧 ${streaks.waterStreak} <span class="text-xs font-normal text-neutral-400">hr</span></span>
+            </div>
+            <div class="bg-ios-cardSecondary border border-white/5 rounded-2xl p-2.5 text-center">
+              <span class="text-[9px] text-neutral-400 uppercase font-semibold block">Timbangan</span>
+              <span class="text-lg font-extrabold text-ios-blue">⚖️ ${streaks.weightStreak} <span class="text-xs font-normal text-neutral-400">hr</span></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 7-Day Weekly Progress Card -->
+        <div class="bg-ios-card border border-white/10 rounded-[26px] p-5 space-y-3 relative overflow-hidden">
+          <div class="flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+              <div class="w-8 h-8 rounded-xl bg-ios-blue/20 border border-ios-blue/30 flex items-center justify-center text-ios-blue">
+                <i data-lucide="trending-down" class="w-4 h-4"></i>
+              </div>
+              <div>
+                <h3 class="text-xs font-bold uppercase tracking-wider text-neutral-400">Progress Seminggu Terakhir</h3>
+                <p class="text-xs text-white font-bold">Trend 7 Hari Terakhir</p>
+              </div>
+            </div>
+            <button onclick="switchTab('progress')" class="text-xs font-semibold text-ios-blue">Details</button>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3 pt-1">
+            <div class="bg-ios-cardSecondary border border-white/5 rounded-2xl p-3">
+              <span class="text-[10px] text-neutral-400 uppercase block font-medium">Perubahan 7 Hari</span>
+              <span class="text-lg font-extrabold ${weeklyStats.change7d <= 0 ? 'text-ios-green' : 'text-ios-orange'}">
+                ${weeklyStats.change7d <= 0 ? weeklyStats.change7d + ' kg' : '+' + weeklyStats.change7d + ' kg'}
+              </span>
+            </div>
+            <div class="bg-ios-cardSecondary border border-white/5 rounded-2xl p-3">
+              <span class="text-[10px] text-neutral-400 uppercase block font-medium">Rata-Rata 7 Hari</span>
+              <span class="text-lg font-extrabold text-white">${weeklyStats.avg7d} kg</span>
+            </div>
+          </div>
+
+          <div class="h-20 w-full pt-1">
+            <canvas id="weeklySparklineChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Macro & Calorie Ring Cards -->
+        <div class="grid grid-cols-2 gap-3">
+          
+          <div class="bg-ios-card border border-white/10 rounded-[24px] p-4 flex flex-col justify-between">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-medium text-neutral-400">Net Calories</span>
+              <i data-lucide="flame" class="w-4 h-4 text-ios-orange"></i>
+            </div>
+            <div class="my-2">
+              <span class="text-2xl font-bold text-white">${netCals}</span>
+              <span class="text-xs text-neutral-400">/ ${targetCalories} kcal</span>
+            </div>
+            <div class="w-full bg-ios-cardSecondary h-2 rounded-full overflow-hidden">
+              <div class="bg-ios-orange h-full rounded-full" style="width: ${targetCalories > 0 ? Math.min(100, Math.max(0, (netCals/targetCalories)*100)) : 0}%"></div>
+            </div>
+            <div class="text-[10px] text-neutral-400 mt-2 space-y-0.5 border-t border-white/5 pt-1.5">
+              <div class="flex justify-between">
+                <span>Masuk:</span>
+                <span class="text-white font-medium">+${totalLoggedCals}</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Terbakar:</span>
+                <span class="text-ios-purple font-medium">-${totalBurnedCals}</span>
+              </div>
+              <div class="flex justify-between pt-0.5 font-semibold text-ios-cyan">
+                <span>Sisa Kuota:</span>
+                <span>${remainingCals >= 0 ? remainingCals : 0} kcal</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Hydration Card -->
+          <div class="bg-ios-card border border-white/10 rounded-[24px] p-4 flex flex-col justify-between relative group">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-medium text-neutral-400">Hydration</span>
+              <button onclick="editWaterGoalPrompt()" class="p-1 -mr-1 rounded-lg hover:bg-white/10 text-ios-cyan" title="Pengaturan Hidrasi">
+                <i data-lucide="sliders" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+            <div class="my-2">
+              <span class="text-2xl font-bold text-white">${((appState.water.current || 0)/1000).toFixed(2)}</span>
+              <span class="text-xs text-neutral-400">/ ${(waterGoal/1000).toFixed(2)} L</span>
+            </div>
+            <div class="w-full bg-ios-cardSecondary h-2 rounded-full overflow-hidden mb-1.5">
+              <div class="bg-ios-cyan h-full rounded-full transition-all duration-300" style="width: ${waterPct}%"></div>
+            </div>
+            <p class="text-[9px] text-ios-cyan font-medium leading-tight mb-2">
+              ${appState.profile.waterTargetMode === 'custom' ? 'Target Manual' : 'Target Dinamis (WIB)'}
+            </p>
+            
+            <div class="grid grid-cols-3 gap-1 pt-1 border-t border-white/5">
+              <button onclick="addWater(-250)" class="py-1 rounded-lg bg-ios-cardSecondary text-[10px] font-bold text-neutral-400 hover:text-ios-red ios-active text-center">-250</button>
+              <button onclick="addWater(250)" class="py-1 rounded-lg bg-ios-cyan/20 border border-ios-cyan/30 text-[10px] font-bold text-ios-cyan ios-active text-center">+250</button>
+              <button onclick="addWater(500)" class="py-1 rounded-lg bg-ios-cyan/20 border border-ios-cyan/30 text-[10px] font-bold text-ios-cyan ios-active text-center">+500</button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- TDEE Engine Summary Banner -->
+        <div class="bg-ios-card border border-white/10 rounded-[24px] p-4 flex items-center justify-between">
+          <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-2xl bg-ios-purple/20 border border-ios-purple/30 flex items-center justify-center text-ios-purple">
+              <i data-lucide="calculator" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <p class="text-xs font-medium text-neutral-400">Kebutuhan Kalori BMR / TDEE</p>
+              <p class="text-sm font-bold text-white">${bmr} / ${tdee} kcal</p>
+            </div>
+          </div>
+          <button onclick="openProfileModal()" class="text-xs text-ios-blue font-semibold ios-active">
+            Sesuaikan
+          </button>
+        </div>
+      `;
+
+      setTimeout(() => {
+        initWeeklySparklineChart(weeklyStats);
+      }, 50);
+    }
+
+    function addWater(amount) {
+      appState.water.current = Math.max(0, (appState.water.current || 0) + amount);
+      appState.water.lastLoggedDate = getTodayString();
+      saveState();
+      renderView();
+    }
+
+    function editWaterGoalPrompt() {
+      openProfileModal();
+    }
+
+    function renderProgress(container) {
+      const logs = appState.weightLogs || [];
+      const currentWeight = appState.profile.weight || 70;
+      const targetWeight = appState.profile.targetWeight || 65;
+      const startWeight = logs.length > 0 ? logs[0].weight : currentWeight;
+      const totalToLose = Math.max(0.1, startWeight - targetWeight);
+      const weightLost = Math.max(0, startWeight - currentWeight);
+      const weightProgressPct = Math.min(100, Math.max(0, Math.round((weightLost / totalToLose) * 100)));
+
+      const activeSubView = appState.subViews.progress || 'weight';
+      const todayStr = getTodayString();
+
+      container.innerHTML = `
+        <div class="bg-ios-cardSecondary p-1 rounded-2xl flex border border-white/5 text-xs font-semibold">
+          <button onclick="switchProgressSubView('weight')" class="flex-1 py-2 rounded-xl transition-all ${activeSubView === 'weight' ? 'bg-ios-card text-white shadow-md' : 'text-neutral-400'}">
+            Berat Badan
+          </button>
+          <button onclick="switchProgressSubView('waist')" class="flex-1 py-2 rounded-xl transition-all ${activeSubView === 'waist' ? 'bg-ios-card text-white shadow-md' : 'text-neutral-400'}">
+            Lingkar Pinggang
+          </button>
+        </div>
+
+        <div class="bg-ios-card border border-white/10 rounded-[26px] p-5 space-y-4">
+          <div class="flex justify-between items-start">
+            <div>
+              <p class="text-xs font-semibold text-neutral-400 uppercase tracking-wider">
+                ${activeSubView === 'weight' ? 'Target Berat Badan' : 'Target Lingkar Pinggang'}
+              </p>
+              <h2 class="text-3xl font-extrabold text-white mt-0.5">
+                ${activeSubView === 'weight' ? currentWeight + ' kg' : (appState.profile.currentWaist || 88) + ' cm'}
+                <span class="text-sm font-normal text-neutral-400">/ ${activeSubView === 'weight' ? targetWeight + ' kg' : (appState.profile.targetWaist || 80) + ' cm'}</span>
+              </h2>
+            </div>
+            <div class="px-3 py-1.5 rounded-full ${activeSubView === 'weight' ? 'bg-ios-blue/20 text-ios-blue border border-ios-blue/30' : 'bg-ios-cyan/20 text-ios-cyan border border-ios-cyan/30'} text-xs font-bold">
+              ${activeSubView === 'weight' ? weightProgressPct + '% Tercapai' : 'Pinggang'}
+            </div>
+          </div>
+
+          <div class="space-y-1.5">
+            <div class="w-full bg-ios-cardSecondary h-2.5 rounded-full overflow-hidden">
+              <div class="bg-ios-blue h-full rounded-full transition-all duration-500" style="width: ${weightProgressPct}%"></div>
+            </div>
+            <div class="flex justify-between text-[11px] text-neutral-400">
+              <span>Awal: ${startWeight} kg</span>
+              <span>Sisa: ${(currentWeight - targetWeight).toFixed(1)} kg</span>
+            </div>
+          </div>
+
+          <div class="h-48 w-full pt-2">
+            <canvas id="progressChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Add Measurement Log Card -->
+        <div class="bg-ios-card border border-white/10 rounded-[24px] p-4 space-y-3">
+          <h3 class="text-sm font-bold text-white flex items-center space-x-2">
+            <i data-lucide="plus-circle" class="w-4 h-4 text-ios-blue"></i>
+            <span>Catat Pengukuran Baru</span>
+          </h3>
+          <form onsubmit="handleAddWeightLog(event)" class="space-y-2 text-xs">
+            <div>
+              <label class="text-[10px] text-neutral-400 font-medium">Tanggal Pencatatan</label>
+              <input type="date" id="new-log-date" value="${todayStr}" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="text-[10px] text-neutral-400 font-medium">Berat (kg)</label>
+                <input type="number" step="0.1" id="new-weight-val" value="${currentWeight}" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
+              </div>
+              <div>
+                <label class="text-[10px] text-neutral-400 font-medium">Lingkar Pinggang (cm)</label>
+                <input type="number" step="0.5" id="new-waist-val" value="${appState.profile.currentWaist || 88}" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
+              </div>
+            </div>
+            <button type="submit" class="w-full py-2.5 bg-ios-blue text-white font-bold rounded-xl ios-active mt-1">
+              Simpan / Update Pengukuran
+            </button>
+          </form>
+        </div>
+
+        <!-- Milestones Section -->
+        <div class="bg-ios-card border border-white/10 rounded-[24px] p-4 space-y-3">
+          <div class="flex justify-between items-center">
+            <div>
+              <h3 class="text-sm font-bold text-white">Target & Milestones</h3>
+              <p class="text-[10px] text-neutral-400">Prediksi otomatis berdasarkan defisit kalori harian</p>
+            </div>
+            <span class="text-xs text-ios-green font-semibold">${(appState.milestones || []).filter(m => m.completed).length}/${(appState.milestones || []).length} Selesai</span>
+          </div>
+          <div class="space-y-2">
+            ${(appState.milestones || []).map(m => {
+              const projectedDate = calculateMilestoneEstDate(m.targetValue, m.type);
+              return `
+                <div onclick="toggleMilestone('${m.id}')" class="p-3 bg-ios-cardSecondary border border-white/5 rounded-xl flex items-center justify-between cursor-pointer ios-active">
+                  <div class="flex items-center space-x-3">
+                    <div class="w-5 h-5 rounded-md ${m.completed ? 'bg-ios-green text-black' : 'border border-white/30'} flex items-center justify-center">
+                      ${m.completed ? '<i data-lucide="check" class="w-3.5 h-3.5 stroke-[3]"></i>' : ''}
+                    </div>
+                    <div>
+                      <p class="text-xs font-semibold ${m.completed ? 'line-through text-neutral-400' : 'text-white'}">${m.title}</p>
+                      <p class="text-[10px] text-ios-cyan mt-0.5">📅 Prediksi Target: <span class="font-bold">${m.completed ? 'Tercapai' : projectedDate}</span></p>
+                    </div>
+                  </div>
+                  <span class="text-[11px] text-neutral-400 font-medium">${m.targetValue} ${m.type === 'weight' ? 'kg' : 'cm'}</span>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+
+      setTimeout(() => {
+        initProgressChart(activeSubView);
+      }, 50);
+    }
+
+    function switchProgressSubView(subView) {
+      appState.subViews.progress = subView;
+      saveState();
+      renderView();
+    }
+
+    function handleAddWeightLog(e) {
+      e.preventDefault();
+      try {
+        const dateStr = document.getElementById('new-log-date').value || getTodayString();
+        const weight = parseFloat(document.getElementById('new-weight-val').value) || appState.profile.weight;
+        const waist = parseFloat(document.getElementById('new-waist-val').value) || appState.profile.currentWaist;
+
+        appState.profile.weight = weight;
+        appState.profile.currentWaist = waist;
+
+        const existingIdx = (appState.weightLogs || []).findIndex(l => l.date === dateStr);
+        if (existingIdx !== -1) {
+          appState.weightLogs[existingIdx] = { date: dateStr, weight, waist };
+        } else {
+          appState.weightLogs.push({ date: dateStr, weight, waist });
+          appState.weightLogs.sort((a, b) => new Date(a.date) - new Date(b.date));
+        }
+
+        saveState();
+        renderView();
+      } catch (err) {
+        console.error("Error adding weight log:", err);
+      }
+    }
+
+    function toggleMilestone(id) {
+      const milestone = (appState.milestones || []).find(m => m.id === id);
+      if (milestone) {
+        milestone.completed = !milestone.completed;
+        saveState();
+        renderView();
+      }
+    }
+
+    function renderMeals(container) {
+      const meals = appState.meals || [];
+      const todayStr = getTodayString();
+      
+      const totalCal = meals.reduce((sum, m) => sum + (m.calories || 0), 0);
+      const totalProtein = meals.reduce((sum, m) => sum + (m.protein || 0), 0);
+      const totalCarbs = meals.reduce((sum, m) => sum + (m.carbs || 0), 0);
+      const totalFat = meals.reduce((sum, m) => sum + (m.fat || 0), 0);
+
+      const categories = [
+        { key: 'Breakfast', label: 'Sarapan (Breakfast)', color: 'text-ios-orange' },
+        { key: 'Lunch', label: 'Makan Siang (Lunch)', color: 'text-ios-green' },
+        { key: 'Dinner', label: 'Makan Malam (Dinner)', color: 'text-ios-blue' },
+        { key: 'Snack', label: 'Cemilan (Snack)', color: 'text-ios-purple' }
+      ];
+
+      container.innerHTML = `
+        <!-- Macro Summary Card -->
+        <div class="bg-ios-card border border-white/10 rounded-[26px] p-5 space-y-4">
+          <div class="flex justify-between items-center">
+            <div>
+              <p class="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Total Asupan Makanan</p>
+              <h2 class="text-3xl font-extrabold text-white mt-0.5">${totalCal} <span class="text-sm font-normal text-neutral-400">kcal</span></h2>
+            </div>
+            <div class="w-10 h-10 rounded-2xl bg-ios-orange/20 border border-ios-orange/30 flex items-center justify-center text-ios-orange">
+              <i data-lucide="utensils" class="w-5 h-5"></i>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2 pt-1 border-t border-white/5">
+            <div class="bg-ios-cardSecondary p-2.5 rounded-xl text-center border border-white/5">
+              <span class="text-[10px] text-neutral-400 uppercase font-semibold block">Protein</span>
+              <span class="text-sm font-extrabold text-ios-blue">${totalProtein}g</span>
+            </div>
+            <div class="bg-ios-cardSecondary p-2.5 rounded-xl text-center border border-white/5">
+              <span class="text-[10px] text-neutral-400 uppercase font-semibold block">Karbo</span>
+              <span class="text-sm font-extrabold text-ios-green">${totalCarbs}g</span>
+            </div>
+            <div class="bg-ios-cardSecondary p-2.5 rounded-xl text-center border border-white/5">
+              <span class="text-[10px] text-neutral-400 uppercase font-semibold block">Lemak</span>
+              <span class="text-sm font-extrabold text-ios-orange">${totalFat}g</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Add Meal Form Card -->
+        <div class="bg-ios-card border border-white/10 rounded-[24px] p-4 space-y-3">
+          <h3 class="text-sm font-bold text-white flex items-center space-x-2">
+            <i data-lucide="plus-circle" class="w-4 h-4 text-ios-green"></i>
+            <span>Catat Makanan Baru</span>
+          </h3>
+          <form onsubmit="handleManualMealSubmit(event)" class="space-y-2 text-xs">
+            <div>
+              <label class="text-[10px] text-neutral-400 font-medium">Tanggal Makan</label>
+              <input type="date" id="manual-meal-date" value="${todayStr}" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
+            </div>
+            <input type="text" id="manual-meal-name" placeholder="Nama Makanan (contoh: Ayam Dada Bakar)" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white">
+            <div class="grid grid-cols-2 gap-2">
+              <select id="manual-meal-category" class="bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white">
+                <option value="Breakfast">Sarapan (Breakfast)</option>
+                <option value="Lunch">Makan Siang (Lunch)</option>
+                <option value="Dinner">Makan Malam (Dinner)</option>
+                <option value="Snack">Cemilan (Snack)</option>
+              </select>
+              <input type="number" id="manual-meal-calories" placeholder="Kalori (kcal)" required class="bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white">
+            </div>
+            <div class="grid grid-cols-3 gap-2">
+              <input type="number" id="manual-meal-protein" placeholder="Protein (g)" class="bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white">
+              <input type="number" id="manual-meal-carbs" placeholder="Karbo (g)" class="bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white">
+              <input type="number" id="manual-meal-fat" placeholder="Lemak (g)" class="bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white">
+            </div>
+            <button type="submit" class="w-full py-2.5 bg-ios-green text-black font-bold rounded-xl ios-active shadow-lg shadow-ios-green/20">
+              Tambah Makanan
+            </button>
+          </form>
+        </div>
+
+        <!-- Meal Items by Category -->
+        <div class="space-y-4">
+          ${categories.map(cat => {
+            const catMeals = meals.filter(m => (m.category || 'Lunch') === cat.key);
+            if (catMeals.length === 0) return '';
+            return `
+              <div class="space-y-2">
+                <div class="flex justify-between items-center pl-1">
+                  <h4 class="text-xs font-bold uppercase tracking-wider ${cat.color}">${cat.label}</h4>
+                  <span class="text-[10px] text-neutral-400 font-medium">${catMeals.reduce((s, m) => s + (m.calories || 0), 0)} kcal</span>
+                </div>
+                ${catMeals.map(m => `
+                  <div class="bg-ios-card border border-white/10 rounded-2xl p-3.5 flex justify-between items-center">
+                    <div>
+                      <div class="flex items-center space-x-2">
+                        <p class="text-sm font-bold text-white">${m.name}</p>
+                        <span class="text-[9px] bg-white/10 text-neutral-300 px-1.5 py-0.5 rounded-md font-mono">${formatDateDisplay(m.date || todayStr)}</span>
+                      </div>
+                      <p class="text-xs text-neutral-400 mt-0.5">${m.calories} kcal • P: ${m.protein || 0}g | C: ${m.carbs || 0}g | F: ${m.fat || 0}g</p>
+                    </div>
+                    <button onclick="deleteMeal('${m.id}')" class="text-neutral-400 hover:text-ios-red p-1.5 ios-active" title="Hapus Makanan">
+                      <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    </button>
+                  </div>
+                `).join('')}
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+
+    function handleManualMealSubmit(e) {
+      e.preventDefault();
+      try {
+        const date = document.getElementById('manual-meal-date').value || getTodayString();
+        const name = document.getElementById('manual-meal-name').value;
+        const category = document.getElementById('manual-meal-category').value;
+        const calories = parseInt(document.getElementById('manual-meal-calories').value) || 0;
+        const protein = parseInt(document.getElementById('manual-meal-protein').value) || 0;
+        const carbs = parseInt(document.getElementById('manual-meal-carbs').value) || 0;
+        const fat = parseInt(document.getElementById('manual-meal-fat').value) || 0;
+
+        appState.meals.push({
+          id: Date.now().toString(),
+          date,
+          name,
+          category,
+          calories,
+          protein,
+          carbs,
+          fat
+        });
+
+        saveState();
+        renderView();
+      } catch (err) {
+        console.error("Error submitting meal:", err);
+      }
+    }
+
+    function deleteMeal(id) {
+      appState.meals = (appState.meals || []).filter(m => m.id !== id);
+      saveState();
+      renderView();
+    }
+
+    function initProgressChart(subView) {
+      const ctx = document.getElementById('progressChart');
+      if (!ctx || !window.Chart) return;
+      if (weightChartInstance) {
+        try { weightChartInstance.destroy(); } catch (e) {}
+      }
+
+      const logs = appState.weightLogs || [];
+      const labels = logs.map(l => formatDateDisplay(l.date));
+      const data = logs.map(l => subView === 'weight' ? l.weight : (l.waist || 88));
+
+      weightChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: subView === 'weight' ? 'Berat (kg)' : 'Pinggang (cm)',
+            data: data,
+            borderColor: subView === 'weight' ? '#0a84ff' : '#64d2ff',
+            backgroundColor: subView === 'weight' ? 'rgba(10, 132, 255, 0.15)' : 'rgba(100, 210, 255, 0.15)',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.35,
+            pointRadius: 4,
+            pointBackgroundColor: '#ffffff'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: {
+              grid: { color: 'rgba(255, 255, 255, 0.05)' },
+              ticks: { color: '#8e8e93', font: { size: 10 } }
+            },
+            y: {
+              grid: { color: 'rgba(255, 255, 255, 0.05)' },
+              ticks: { color: '#8e8e93', font: { size: 10 } }
+            }
+          }
+        }
+      });
+    }
+
+    function renderFitness(container) {
+      const runs = appState.fitness.runs || [];
+      const totalKm = runs.reduce((acc, r) => acc + (r.distance || 0), 0).toFixed(1);
+      const todayStr = getTodayString();
+
+      container.innerHTML = `
+        <div class="bg-ios-card border border-white/10 rounded-[26px] p-5 space-y-3">
+          <div class="flex justify-between items-center">
+            <div>
+              <p class="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Total Jarak Lari</p>
+              <h2 class="text-4xl font-extrabold mt-1 text-white">${totalKm} <span class="text-lg font-normal text-neutral-400">km</span></h2>
+            </div>
+            <div class="w-12 h-12 rounded-2xl bg-ios-purple/20 border border-ios-purple/30 flex items-center justify-center text-ios-purple">
+              <i data-lucide="footprints" class="w-6 h-6"></i>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-ios-card border border-white/10 rounded-[24px] p-4 space-y-3">
+          <h3 class="text-sm font-bold text-white flex items-center space-x-1.5">
+            <i data-lucide="plus-circle" class="w-4 h-4 text-ios-purple"></i>
+            <span>Tambah Sesi Lari</span>
+          </h3>
+          <form onsubmit="handleAddRun(event)" class="space-y-2 text-xs">
+            <div>
+              <label class="text-[10px] text-neutral-400 font-medium">Tanggal Sesi</label>
+              <input type="date" id="run-date" value="${todayStr}" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <input type="number" step="0.1" id="run-dist" placeholder="Jarak (km)" required class="bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white">
+              <input type="text" id="run-time" placeholder="Durasi (mm:ss)" required class="bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white">
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <input type="number" id="run-hr" placeholder="Avg HR (bpm)" class="bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white">
+              <input type="number" id="run-cal" placeholder="Kalori Terbakar" class="bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white">
+            </div>
+            <button type="submit" class="w-full py-2.5 bg-ios-purple text-white font-bold rounded-xl ios-active shadow-lg shadow-ios-purple/20">Simpan Sesi Lari</button>
+          </form>
+        </div>
+
+        <div class="space-y-2">
+          <h4 class="text-xs font-bold text-neutral-400 uppercase tracking-wider">Aktivitas Terbaru</h4>
+          ${runs.length === 0 ? `
+            <div class="bg-ios-card border border-white/10 rounded-2xl p-4 text-center text-xs text-neutral-500 italic">Belum ada aktivitas lari dicatat.</div>
+          ` : runs.slice().reverse().map(r => {
+            if (editingRunId === r.id) {
+              return `
+                <div class="bg-ios-card border border-ios-purple/50 rounded-2xl p-4 space-y-2">
+                  <div class="flex justify-between items-center pb-1">
+                    <span class="text-xs font-bold text-ios-purple">Edit Sesi Lari</span>
+                    <button onclick="cancelEditRun()" class="text-xs text-neutral-400 hover:text-white">Batal</button>
+                  </div>
+                  <form onsubmit="handleSaveEditedRun(event, '${r.id}')" class="space-y-2 text-xs">
+                    <div>
+                      <label class="text-[10px] text-neutral-400">Tanggal Sesi</label>
+                      <input type="date" id="edit-run-date" value="${r.date || todayStr}" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2 text-white mt-0.5">
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                      <div>
+                        <label class="text-[10px] text-neutral-400">Jarak (km)</label>
+                        <input type="number" step="0.1" id="edit-run-dist" value="${r.distance}" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2 text-white mt-0.5">
+                      </div>
+                      <div>
+                        <label class="text-[10px] text-neutral-400">Durasi (mm:ss)</label>
+                        <input type="text" id="edit-run-time" value="${r.duration}" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2 text-white mt-0.5">
+                      </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                      <div>
+                        <label class="text-[10px] text-neutral-400">Heart Rate (bpm)</label>
+                        <input type="number" id="edit-run-hr" value="${r.heartRate || ''}" class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2 text-white mt-0.5">
+                      </div>
+                      <div>
+                        <label class="text-[10px] text-neutral-400">Kalori</label>
+                        <input type="number" id="edit-run-cal" value="${r.calories || ''}" class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2 text-white mt-0.5">
+                      </div>
+                    </div>
+                    <button type="submit" class="w-full py-2 bg-ios-purple text-white font-bold rounded-xl ios-active mt-1">Simpan Perubahan</button>
+                  </form>
+                </div>
+              `;
+            }
+
+            return `
+              <div class="bg-ios-card border border-white/10 rounded-2xl p-4 flex justify-between items-center">
+                <div>
+                  <p class="text-base font-extrabold text-white">${r.distance} km <span class="text-xs font-normal text-neutral-400">(${r.duration})</span></p>
+                  <p class="text-xs text-neutral-400 mt-0.5">Pace: ${r.pace || '-'} • HR: ${r.heartRate || '-'} bpm • ${r.calories || 0} kcal</p>
+                  <span class="text-[10px] text-neutral-500">📅 ${formatDateDisplay(r.date)}</span>
+                </div>
+                <div class="flex items-center space-x-1">
+                  <button onclick="startEditRun('${r.id}')" class="text-neutral-400 hover:text-ios-blue p-1.5 ios-active" title="Edit">
+                    <i data-lucide="pencil" class="w-4 h-4"></i>
+                  </button>
+                  <button onclick="deleteRun('${r.id}')" class="text-neutral-400 hover:text-ios-red p-1.5 ios-active" title="Hapus">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                  </button>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+
+    function handleAddRun(e) {
+      e.preventDefault();
+      try {
+        const date = document.getElementById('run-date').value || getTodayString();
+        const dist = parseFloat(document.getElementById('run-dist').value) || 0;
+        const dur = document.getElementById('run-time').value || '00:00';
+        const hr = parseInt(document.getElementById('run-hr').value) || 0;
+        const cal = parseInt(document.getElementById('run-cal').value) || 0;
+
+        appState.fitness.runs.push({
+          id: Date.now().toString(),
+          date: date,
+          distance: dist,
+          duration: dur,
+          pace: '5:30',
+          heartRate: hr,
+          calories: cal
+        });
+
+        saveState();
+        renderView();
+      } catch (err) {
+        console.error("Error adding run:", err);
+      }
+    }
+
+    function startEditRun(id) {
+      editingRunId = id;
+      renderView();
+    }
+
+    function cancelEditRun() {
+      editingRunId = null;
+      renderView();
+    }
+
+    function handleSaveEditedRun(e, id) {
+      e.preventDefault();
+      try {
+        const run = (appState.fitness.runs || []).find(r => r.id === id);
+        if (!run) return;
+
+        run.date = document.getElementById('edit-run-date').value || run.date;
+        run.distance = parseFloat(document.getElementById('edit-run-dist').value) || run.distance;
+        run.duration = document.getElementById('edit-run-time').value || run.duration;
+        run.heartRate = parseInt(document.getElementById('edit-run-hr').value) || 0;
+        run.calories = parseInt(document.getElementById('edit-run-cal').value) || 0;
+
+        editingRunId = null;
+        saveState();
+        renderView();
+      } catch (err) {
+        console.error("Error saving edited run:", err);
+      }
+    }
+
+    function deleteRun(id) {
+      appState.fitness.runs = (appState.fitness.runs || []).filter(r => r.id !== id);
+      if (editingRunId === id) editingRunId = null;
+      saveState();
+      renderView();
+    }
+
+    function initWeeklySparklineChart(weeklyStats) {
+      const ctx = document.getElementById('weeklySparklineChart');
+      if (!ctx || !window.Chart) return;
+      if (weeklySparklineInstance) {
+        try { weeklySparklineInstance.destroy(); } catch (e) {}
+      }
+
+      weeklySparklineInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: weeklyStats.sparklineLabels,
+          datasets: [{
+            data: weeklyStats.sparklineData,
+            borderColor: '#30d158',
+            backgroundColor: 'rgba(48, 209, 88, 0.12)',
+            borderWidth: 2.5,
+            fill: true,
+            tension: 0.3,
+            pointRadius: 3,
+            pointBackgroundColor: '#30d158'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: { x: { display: false }, y: { display: false } }
+        }
+      });
+    }
+
+    window.onload = function() {
+      try {
+        renderView();
+        updateScoreDot();
+      } catch (e) {
+        console.error("Error on page load initialization:", e);
+      }
+    };
+  </script>
+</body>
+</html>
