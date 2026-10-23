@@ -55,13 +55,13 @@
     }
 
     .ios-blur {
-      background: rgba(28, 28, 30, 0.78);
+      background: rgba(28, 28, 30, 0.85);
       backdrop-filter: blur(25px) saturate(190%);
       -webkit-backdrop-filter: blur(25px) saturate(190%);
     }
 
     .ios-blur-bar {
-      background: rgba(18, 18, 20, 0.85);
+      background: rgba(18, 18, 20, 0.9);
       backdrop-filter: blur(30px) saturate(200%);
       -webkit-backdrop-filter: blur(30px) saturate(200%);
     }
@@ -116,7 +116,7 @@
     </header>
 
     <!-- App Content Scroll Area -->
-    <main id="app-content" class="flex-1 overflow-y-auto no-scrollbar px-4 pt-3 pb-28 space-y-5">
+    <main id="app-content" class="flex-1 overflow-y-auto no-scrollbar px-4 pt-3 pb-28 space-y-4">
       <!-- Content View inserted dynamically -->
     </main>
 
@@ -153,18 +153,18 @@
 
   <!-- Profile & Metrics Modal -->
   <div id="profile-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-end sm:items-center justify-center p-0 sm:p-4 transition-opacity">
-    <div class="bg-ios-card border border-white/10 w-full max-w-md rounded-t-[32px] sm:rounded-[32px] p-6 space-y-5 max-h-[90vh] overflow-y-auto no-scrollbar">
+    <div class="bg-ios-card border border-white/10 w-full max-w-md rounded-t-[32px] sm:rounded-[32px] p-6 space-y-4 max-h-[90vh] overflow-y-auto no-scrollbar">
       <div class="flex justify-between items-center border-b border-white/10 pb-3">
         <div>
           <h2 class="text-xl font-bold">Body & Target Setup</h2>
-          <p class="text-xs text-neutral-400">Recalculates Mifflin-St Jeor TDEE & Projections</p>
+          <p class="text-xs text-neutral-400">Recalculates Mifflin-St Jeor TDEE & Deficit</p>
         </div>
         <button onclick="closeProfileModal()" class="w-8 h-8 rounded-full bg-ios-cardSecondary flex items-center justify-center text-neutral-400 hover:text-white">
           <i data-lucide="x" class="w-4 h-4"></i>
         </button>
       </div>
 
-      <div class="space-y-4 text-sm">
+      <div class="space-y-3 text-sm">
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="text-xs text-neutral-400 font-medium">Age</label>
@@ -210,8 +210,7 @@
 
         <div class="p-3 bg-ios-cardSecondary border border-white/5 rounded-2xl space-y-2">
           <div class="flex justify-between items-center">
-            <label class="text-xs text-ios-cyan font-bold">Model Target Air Minum</label>
-            <span class="text-[10px] text-neutral-400">Riset Hydration</span>
+            <label class="text-xs text-ios-cyan font-bold">Target Air Minum (Hydration)</label>
           </div>
           <select id="user-water-mode" onchange="toggleCustomWaterInput()" class="w-full bg-ios-card border border-white/10 rounded-xl px-3 py-2 text-white text-xs">
             <option value="dynamic">Dinamis (35ml/kg Berat + Tambahan Latihan)</option>
@@ -232,7 +231,7 @@
 
   <!-- Export & Backup Modal -->
   <div id="drive-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-end sm:items-center justify-center p-0 sm:p-4 transition-opacity">
-    <div class="bg-ios-card border border-white/10 w-full max-w-md rounded-t-[32px] sm:rounded-[32px] p-6 space-y-5 max-h-[90vh] overflow-y-auto no-scrollbar">
+    <div class="bg-ios-card border border-white/10 w-full max-w-md rounded-t-[32px] sm:rounded-[32px] p-6 space-y-4 max-h-[90vh] overflow-y-auto no-scrollbar">
       <div class="flex justify-between items-center border-b border-white/10 pb-3">
         <div class="flex items-center space-x-2">
           <div class="w-8 h-8 rounded-xl bg-ios-cyan/20 flex items-center justify-center text-ios-cyan">
@@ -299,25 +298,12 @@
         currentWaist: 88,
         waterTargetMode: 'dynamic'
       },
-      // Daily water intake logs keyed by 'YYYY-MM-DD'
-      waterLogs: {
-        '2026-10-19': 3000,
-        '2026-10-20': 2500,
-        '2026-10-21': 1750
-      },
-      water: {
-        goal: 3000
-      },
-      meals: [
-        { id: '1', name: 'Oatmeal & Protein Whey', calories: 420, protein: 32, carbs: 54, fat: 8, category: 'Breakfast', date: '2026-10-21' },
-        { id: '2', name: 'Nasi Merah & Dada Ayam Bakar', calories: 580, protein: 48, carbs: 52, fat: 12, category: 'Lunch', date: '2026-10-21' }
-      ],
+      waterLogs: {},
+      water: { goal: 3000 },
+      meals: [],
       fitness: {
-        runs: [
-          { id: 'r1', date: '2026-10-15', distance: 5.2, duration: '28:15', pace: '5:26', heartRate: 152, calories: 340 },
-          { id: 'r2', date: '2026-10-18', distance: 7.0, duration: '39:10', pace: '5:35', heartRate: 158, calories: 480 },
-          { id: 'r3', date: '2026-10-21', distance: 3.5, duration: '19:40', pace: '5:37', heartRate: 148, calories: 220 }
-        ]
+        runs: [],
+        workouts: []
       },
       milestones: [
         { id: 'm1', title: 'Break Below 75kg', targetValue: 75.0, type: 'weight', completed: true },
@@ -327,22 +313,36 @@
       weightLogs: [
         { date: '2026-10-01', weight: 81.0, waist: 91 },
         { date: '2026-10-08', weight: 79.8, waist: 89.5 },
-        { date: '2026-10-12', weight: 79.2, waist: 89.0 },
         { date: '2026-10-15', weight: 78.8, waist: 88.5 },
-        { date: '2026-10-17', weight: 78.6, waist: 88.2 },
         { date: '2026-10-19', weight: 78.5, waist: 88 }
       ],
       subViews: {
-        progress: 'weight'
+        progress: 'weight',
+        fitness: 'running'
       }
     };
 
     let weightChartInstance = null;
     let weeklySparklineInstance = null;
-    let editingRunId = null;
     let selectedDate = getTodayString();
 
-    // Helper function to format date strings for display
+    function getWibDateString(d) {
+      try {
+        const formatter = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Jakarta' });
+        return formatter.format(d);
+      } catch (e) {
+        return d.toISOString().slice(0, 10);
+      }
+    }
+
+    function getTodayString() {
+      try {
+        return getWibDateString(new Date());
+      } catch (e) {
+        return new Date().toISOString().slice(0, 10);
+      }
+    }
+
     function formatDateDisplay(dateStr) {
       if (!dateStr) return '';
       try {
@@ -354,45 +354,6 @@
         return dateStr;
       } catch (e) {
         return dateStr;
-      }
-    }
-
-    // Helper function to calculate BMR and TDEE (Mifflin-St Jeor Formula)
-    function calculateTDEE() {
-      try {
-        const p = appState.profile || DEFAULT_STATE.profile;
-        const weight = p.weight || 70;
-        const height = p.height || 170;
-        const age = p.age || 25;
-        const gender = p.gender || 'male';
-        const activity = p.activity || 1.375;
-        const deficit = p.deficit || 500;
-
-        let bmr = (10 * weight) + (6.25 * height) - (5 * age);
-        if (gender === 'male') {
-          bmr += 5;
-        } else {
-          bmr -= 161;
-        }
-
-        bmr = Math.round(bmr);
-        const tdee = Math.round(bmr * activity);
-        const targetCalories = Math.max(1200, tdee - deficit);
-
-        return { bmr, tdee, targetCalories };
-      } catch (e) {
-        return { bmr: 1600, tdee: 2200, targetCalories: 1700 };
-      }
-    }
-
-    function getTodayString() {
-      try {
-        const now = new Date();
-        const options = { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit' };
-        const formatter = new Intl.DateTimeFormat('sv-SE', options);
-        return formatter.format(now);
-      } catch (e) {
-        return new Date().toISOString().slice(0, 10);
       }
     }
 
@@ -424,22 +385,54 @@
       saveState();
     }
 
-    function checkDayChange() {
-      // Compatibility migration
-      if (!appState.waterLogs) {
-        appState.waterLogs = {};
-        if (appState.water && appState.water.current !== undefined) {
-          appState.waterLogs[getTodayString()] = appState.water.current;
-        }
+    function calculateTDEE() {
+      try {
+        const p = appState.profile || DEFAULT_STATE.profile;
+        const weight = p.weight || 70;
+        const height = p.height || 170;
+        const age = p.age || 25;
+        const gender = p.gender || 'male';
+        const activity = p.activity || 1.375;
+        const deficit = p.deficit || 500;
+
+        let bmr = (10 * weight) + (6.25 * height) - (5 * age);
+        if (gender === 'male') bmr += 5;
+        else bmr -= 161;
+
+        bmr = Math.round(bmr);
+        const tdee = Math.round(bmr * activity);
+        const targetCalories = Math.max(1200, tdee - deficit);
+
+        return { bmr, tdee, targetCalories };
+      } catch (e) {
+        return { bmr: 1600, tdee: 2200, targetCalories: 1700 };
       }
     }
 
-    function getWibDateString(d) {
+    function getDynamicWaterGoal(dateStr = selectedDate) {
       try {
-        const formatter = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Jakarta' });
-        return formatter.format(d);
+        if (appState.profile.waterTargetMode === 'custom' && appState.water.goal) {
+          return appState.water.goal;
+        }
+
+        const baseHydration = (appState.profile.weight || 70) * 35;
+        let workoutExtra = 0;
+        const runs = (appState.fitness.runs || []).filter(r => r.date === dateStr);
+        runs.forEach(r => {
+          if (r.duration) {
+            const parts = r.duration.split(':');
+            if (parts.length === 2) {
+              const mins = (parseInt(parts[0]) || 0) + ((parseInt(parts[1]) || 0) / 60);
+              workoutExtra += mins * 12;
+            } else if (!isNaN(r.duration)) {
+              workoutExtra += parseFloat(r.duration) * 12;
+            }
+          }
+        });
+
+        return Math.round((baseHydration + workoutExtra) / 50) * 50;
       } catch (e) {
-        return d.toISOString().slice(0, 10);
+        return 3000;
       }
     }
 
@@ -490,82 +483,7 @@
 
         return { mealStreak, waterStreak, weightStreak };
       } catch (e) {
-        console.error("Error calculating streaks:", e);
         return { mealStreak: 0, waterStreak: 0, weightStreak: 0 };
-      }
-    }
-
-    function calculateMilestoneEstDate(targetValue, type) {
-      try {
-        const currentVal = type === 'weight' ? (appState.profile.weight || 70) : (appState.profile.currentWaist || 88);
-        const diff = currentVal - targetValue;
-        if (diff <= 0) return 'Sudah Tercapai! 🎉';
-
-        const dailyDeficit = appState.profile.deficit || 500;
-        const kgPerDay = dailyDeficit / 7700;
-        const daysNeeded = Math.ceil(diff / (kgPerDay > 0 ? kgPerDay : 0.05));
-
-        const projectedDate = new Date();
-        projectedDate.setDate(projectedDate.getDate() + daysNeeded);
-
-        return projectedDate.toLocaleDateString('id-ID', { timeZone: 'Asia/Jakarta', day: 'numeric', month: 'short', year: 'numeric' });
-      } catch (e) {
-        return 'TBD';
-      }
-    }
-
-    function loadAppState() {
-      try {
-        const saved = localStorage.getItem('ad_meliora_ios_state');
-        if (!saved) return DEFAULT_STATE;
-        const parsed = JSON.parse(saved);
-        return {
-          ...DEFAULT_STATE,
-          ...parsed,
-          profile: { ...DEFAULT_STATE.profile, ...(parsed.profile || {}) },
-          water: { ...DEFAULT_STATE.water, ...(parsed.water || {}) },
-          fitness: { ...DEFAULT_STATE.fitness, ...(parsed.fitness || {}) },
-          subViews: { ...DEFAULT_STATE.subViews, ...(parsed.subViews || {}) }
-        };
-      } catch (e) {
-        console.error("Failed to parse saved state, falling back to default", e);
-        return DEFAULT_STATE;
-      }
-    }
-
-    let appState = loadAppState();
-
-    function saveState() {
-      try {
-        localStorage.setItem('ad_meliora_ios_state', JSON.stringify(appState));
-        updateScoreDot();
-      } catch (e) {
-        console.error("Error saving state:", e);
-      }
-    }
-
-    function getDynamicWaterGoal(dateStr = selectedDate) {
-      try {
-        if (appState.profile.waterTargetMode === 'custom' && appState.water.goal) {
-          return appState.water.goal;
-        }
-
-        const baseHydration = (appState.profile.weight || 70) * 35;
-        let workoutExtra = 0;
-        const runs = (appState.fitness.runs || []).filter(r => r.date === dateStr);
-        runs.forEach(r => {
-          if (r.duration) {
-            const parts = r.duration.split(':');
-            if (parts.length === 2) {
-              const mins = (parseInt(parts[0]) || 0) + ((parseInt(parts[1]) || 0) / 60);
-              workoutExtra += mins * 12;
-            }
-          }
-        });
-
-        return Math.round((baseHydration + workoutExtra) / 50) * 50;
-      } catch (e) {
-        return 3000;
       }
     }
 
@@ -577,17 +495,20 @@
 
         const dayMeals = (appState.meals || []).filter(m => m.date === dateStr);
         const totalCaloriesLogged = dayMeals.reduce((sum, m) => sum + (m.calories || 0), 0);
-        const totalCaloriesBurned = (appState.fitness.runs || []).filter(r => r.date === dateStr).reduce((sum, r) => sum + (r.calories || 0), 0);
-        const netCalories = totalCaloriesLogged - totalCaloriesBurned;
+        
+        const runCalories = (appState.fitness.runs || []).filter(r => r.date === dateStr).reduce((sum, r) => sum + (r.calories || 0), 0);
+        const workoutCalories = (appState.fitness.workouts || []).filter(w => w.date === dateStr).reduce((sum, w) => sum + (w.calories || 0), 0);
+        const totalBurned = runCalories + workoutCalories;
+
+        const netCals = totalCaloriesLogged - totalBurned;
         const { targetCalories } = calculateTDEE();
-        const calorieRatio = targetCalories > 0 ? (netCalories / targetCalories) : 0;
+        const calorieRatio = targetCalories > 0 ? (netCals / targetCalories) : 0;
         
         let mealScore = 0;
         if (calorieRatio >= 0.5 && calorieRatio <= 1.05) mealScore = 35;
         else if (calorieRatio > 0) mealScore = 20;
 
-        const dayRuns = (appState.fitness.runs || []).filter(r => r.date === dateStr);
-        const fitnessScore = dayRuns.length > 0 ? 25 : 10;
+        const fitnessScore = ((appState.fitness.runs || []).filter(r => r.date === dateStr).length > 0 || (appState.fitness.workouts || []).filter(w => w.date === dateStr).length > 0) ? 25 : 10;
 
         return Math.min(100, Math.round(waterScore + mealScore + fitnessScore));
       } catch (e) {
@@ -632,6 +553,33 @@
         else if (score >= 50) dot.className = "absolute -top-0.5 -right-1 w-2.5 h-2.5 rounded-full bg-ios-orange";
         else dot.className = "absolute -top-0.5 -right-1 w-2.5 h-2.5 rounded-full bg-ios-red";
       }
+    }
+
+    function loadAppState() {
+      try {
+        const saved = localStorage.getItem('ad_meliora_ios_state');
+        if (!saved) return DEFAULT_STATE;
+        const parsed = JSON.parse(saved);
+        return {
+          ...DEFAULT_STATE,
+          ...parsed,
+          profile: { ...DEFAULT_STATE.profile, ...(parsed.profile || {}) },
+          water: { ...DEFAULT_STATE.water, ...(parsed.water || {}) },
+          fitness: { ...DEFAULT_STATE.fitness, ...(parsed.fitness || {}) },
+          subViews: { ...DEFAULT_STATE.subViews, ...(parsed.subViews || {}) }
+        };
+      } catch (e) {
+        return DEFAULT_STATE;
+      }
+    }
+
+    let appState = loadAppState();
+
+    function saveState() {
+      try {
+        localStorage.setItem('ad_meliora_ios_state', JSON.stringify(appState));
+        updateScoreDot();
+      } catch (e) {}
     }
 
     function openProfileModal() {
@@ -693,9 +641,7 @@
         document.body.appendChild(downloadAnchor);
         downloadAnchor.click();
         downloadAnchor.remove();
-      } catch (e) {
-        console.error("Download failed", e);
-      }
+      } catch (e) {}
     }
 
     function uploadBackupFile(event) {
@@ -709,14 +655,10 @@
             saveState();
             renderView();
             closeDriveSyncModal();
-          } catch (err) {
-            console.error('Format JSON tidak valid:', err);
-          }
+          } catch (err) {}
         };
         reader.readAsText(file);
-      } catch (e) {
-        console.error("Upload failed", e);
-      }
+      } catch (e) {}
     }
 
     async function exportSummaryAsImage() {
@@ -737,9 +679,7 @@
         document.body.appendChild(link);
         link.click();
         link.remove();
-      } catch (e) {
-        console.error('Failed to export photo:', e);
-      }
+      } catch (e) {}
     }
 
     async function exportSummaryAsPDF() {
@@ -763,9 +703,7 @@
 
         pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
         pdf.save(`ad_meliora_report_${new Date().toISOString().slice(0,10)}.pdf`);
-      } catch (e) {
-        console.error('Failed to export PDF:', e);
-      }
+      } catch (e) {}
     }
 
     let currentTab = 'dashboard';
@@ -788,7 +726,7 @@
         if (tab === 'dashboard') pageTitle.innerText = 'Dashboard';
         else if (tab === 'progress') pageTitle.innerText = 'Body Progress';
         else if (tab === 'meals') pageTitle.innerText = 'Catatan Makanan';
-        else if (tab === 'fitness') pageTitle.innerText = 'Fitness Log';
+        else if (tab === 'fitness') pageTitle.innerText = 'Fitness & Workout';
       }
 
       renderView();
@@ -810,13 +748,16 @@
     }
 
     function renderDashboard(container) {
-      checkDayChange();
       const score = calculateAdMelioraScore(selectedDate);
       const { bmr, tdee, targetCalories } = calculateTDEE();
       
       const dayMeals = (appState.meals || []).filter(m => m.date === selectedDate);
       const totalLoggedCals = dayMeals.reduce((sum, m) => sum + (m.calories || 0), 0);
-      const totalBurnedCals = (appState.fitness.runs || []).filter(r => r.date === selectedDate).reduce((sum, r) => sum + (r.calories || 0), 0);
+      
+      const runBurnedCals = (appState.fitness.runs || []).filter(r => r.date === selectedDate).reduce((sum, r) => sum + (r.calories || 0), 0);
+      const workoutBurnedCals = (appState.fitness.workouts || []).filter(w => w.date === selectedDate).reduce((sum, w) => sum + (w.calories || 0), 0);
+      const totalBurnedCals = runBurnedCals + workoutBurnedCals;
+
       const netCals = totalLoggedCals - totalBurnedCals;
       const remainingCals = targetCalories - netCals;
 
@@ -829,7 +770,6 @@
       const isToday = selectedDate === getTodayString();
 
       container.innerHTML = `
-        <!-- Date Switcher Header Bar -->
         <div class="bg-ios-card border border-white/10 rounded-2xl p-2.5 flex items-center justify-between text-xs font-semibold">
           <button onclick="shiftSelectedDate(-1)" class="p-2 bg-ios-cardSecondary rounded-xl ios-active text-neutral-300 hover:text-white flex items-center gap-1">
             <i data-lucide="chevron-left" class="w-4 h-4"></i>
@@ -844,7 +784,6 @@
           </button>
         </div>
 
-        <!-- Ad Meliora Score Widget -->
         <div class="bg-ios-card border border-white/10 rounded-[26px] p-5 shadow-xl relative overflow-hidden">
           <div class="flex justify-between items-start">
             <div>
@@ -861,7 +800,6 @@
           </p>
         </div>
 
-        <!-- Total Streaks Summary Widget -->
         <div class="bg-ios-card border border-white/10 rounded-[26px] p-4 space-y-3">
           <div class="flex items-center justify-between">
             <h3 class="text-xs font-bold uppercase tracking-wider text-neutral-400 flex items-center gap-1.5">
@@ -872,20 +810,19 @@
           <div class="grid grid-cols-3 gap-2">
             <div class="bg-ios-cardSecondary border border-white/5 rounded-2xl p-2.5 text-center">
               <span class="text-[9px] text-neutral-400 uppercase font-semibold block">Makanan</span>
-              <span class="text-lg font-extrabold text-ios-orange">🔥 ${streaks.mealStreak} <span class="text-xs font-normal text-neutral-400">hr</span></span>
+              <span class="text-base font-extrabold text-ios-orange">🔥 ${streaks.mealStreak} <span class="text-[10px] font-normal text-neutral-400">hr</span></span>
             </div>
             <div class="bg-ios-cardSecondary border border-white/5 rounded-2xl p-2.5 text-center">
               <span class="text-[9px] text-neutral-400 uppercase font-semibold block">Hidrasi</span>
-              <span class="text-lg font-extrabold text-ios-cyan">💧 ${streaks.waterStreak} <span class="text-xs font-normal text-neutral-400">hr</span></span>
+              <span class="text-base font-extrabold text-ios-cyan">💧 ${streaks.waterStreak} <span class="text-[10px] font-normal text-neutral-400">hr</span></span>
             </div>
             <div class="bg-ios-cardSecondary border border-white/5 rounded-2xl p-2.5 text-center">
               <span class="text-[9px] text-neutral-400 uppercase font-semibold block">Timbangan</span>
-              <span class="text-lg font-extrabold text-ios-blue">⚖️ ${streaks.weightStreak} <span class="text-xs font-normal text-neutral-400">hr</span></span>
+              <span class="text-base font-extrabold text-ios-blue">⚖️ ${streaks.weightStreak} <span class="text-[10px] font-normal text-neutral-400">hr</span></span>
             </div>
           </div>
         </div>
 
-        <!-- 7-Day Weekly Progress Card -->
         <div class="bg-ios-card border border-white/10 rounded-[26px] p-5 space-y-3 relative overflow-hidden">
           <div class="flex justify-between items-center">
             <div class="flex items-center space-x-2">
@@ -918,7 +855,6 @@
           </div>
         </div>
 
-        <!-- Macro & Calorie Ring Cards -->
         <div class="grid grid-cols-2 gap-3">
           
           <div class="bg-ios-card border border-white/10 rounded-[24px] p-4 flex flex-col justify-between">
@@ -949,11 +885,10 @@
             </div>
           </div>
 
-          <!-- Hydration Card -->
           <div class="bg-ios-card border border-white/10 rounded-[24px] p-4 flex flex-col justify-between relative group">
             <div class="flex items-center justify-between">
               <span class="text-xs font-medium text-neutral-400">Hydration</span>
-              <button onclick="editWaterGoalPrompt()" class="p-1 -mr-1 rounded-lg hover:bg-white/10 text-ios-cyan" title="Pengaturan Hidrasi">
+              <button onclick="openProfileModal()" class="p-1 -mr-1 rounded-lg hover:bg-white/10 text-ios-cyan" title="Pengaturan Hidrasi">
                 <i data-lucide="sliders" class="w-3.5 h-3.5"></i>
               </button>
             </div>
@@ -977,7 +912,6 @@
 
         </div>
 
-        <!-- TDEE Engine Summary Banner -->
         <div class="bg-ios-card border border-white/10 rounded-[24px] p-4 flex items-center justify-between">
           <div class="flex items-center space-x-3">
             <div class="w-10 h-10 rounded-2xl bg-ios-purple/20 border border-ios-purple/30 flex items-center justify-center text-ios-purple">
@@ -1003,10 +937,6 @@
       const current = getWaterForDate(selectedDate);
       setWaterForDate(selectedDate, current + amount);
       renderView();
-    }
-
-    function editWaterGoalPrompt() {
-      openProfileModal();
     }
 
     function renderProgress(container) {
@@ -1062,7 +992,6 @@
           </div>
         </div>
 
-        <!-- Add Measurement Log Card -->
         <div class="bg-ios-card border border-white/10 rounded-[24px] p-4 space-y-3">
           <h3 class="text-sm font-bold text-white flex items-center space-x-2">
             <i data-lucide="plus-circle" class="w-4 h-4 text-ios-blue"></i>
@@ -1089,7 +1018,6 @@
           </form>
         </div>
 
-        <!-- Milestones Section -->
         <div class="bg-ios-card border border-white/10 rounded-[24px] p-4 space-y-3">
           <div class="flex justify-between items-center">
             <div>
@@ -1125,6 +1053,25 @@
       }, 50);
     }
 
+    function calculateMilestoneEstDate(targetValue, type) {
+      try {
+        const currentVal = type === 'weight' ? (appState.profile.weight || 70) : (appState.profile.currentWaist || 88);
+        const diff = currentVal - targetValue;
+        if (diff <= 0) return 'Sudah Tercapai! 🎉';
+
+        const dailyDeficit = appState.profile.deficit || 500;
+        const kgPerDay = dailyDeficit / 7700;
+        const daysNeeded = Math.ceil(diff / (kgPerDay > 0 ? kgPerDay : 0.05));
+
+        const projectedDate = new Date();
+        projectedDate.setDate(projectedDate.getDate() + daysNeeded);
+
+        return projectedDate.toLocaleDateString('id-ID', { timeZone: 'Asia/Jakarta', day: 'numeric', month: 'short', year: 'numeric' });
+      } catch (e) {
+        return 'TBD';
+      }
+    }
+
     function switchProgressSubView(subView) {
       appState.subViews.progress = subView;
       saveState();
@@ -1151,9 +1098,7 @@
 
         saveState();
         renderView();
-      } catch (err) {
-        console.error("Error adding weight log:", err);
-      }
+      } catch (err) {}
     }
 
     function toggleMilestone(id) {
@@ -1182,7 +1127,6 @@
       ];
 
       container.innerHTML = `
-        <!-- Date Selector Header Bar -->
         <div class="bg-ios-card border border-white/10 rounded-2xl p-2.5 flex items-center justify-between text-xs font-semibold">
           <button onclick="shiftSelectedDate(-1)" class="p-2 bg-ios-cardSecondary rounded-xl ios-active text-neutral-300 hover:text-white">
             <i data-lucide="chevron-left" class="w-4 h-4"></i>
@@ -1196,7 +1140,6 @@
           </button>
         </div>
 
-        <!-- Macro Summary Card -->
         <div class="bg-ios-card border border-white/10 rounded-[26px] p-5 space-y-4">
           <div class="flex justify-between items-center">
             <div>
@@ -1224,7 +1167,32 @@
           </div>
         </div>
 
-        <!-- Add Meal Form Card -->
+        <!-- AI Food Scanner Card -->
+        <div class="bg-gradient-to-r from-ios-blue/10 to-ios-purple/10 border border-ios-blue/30 rounded-[24px] p-4 space-y-3 relative overflow-hidden">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+              <div class="w-8 h-8 rounded-xl bg-ios-blue text-white flex items-center justify-center">
+                <i data-lucide="camera" class="w-4 h-4"></i>
+              </div>
+              <div>
+                <h3 class="text-xs font-bold text-white uppercase tracking-wider">Scan Makanan AI</h3>
+                <p class="text-[10px] text-neutral-300">Foto makanan untuk deteksi otomatis kalori & makro</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-1">
+            <label class="w-full py-3 bg-ios-blue text-white font-bold rounded-xl ios-active flex items-center justify-center space-x-2 cursor-pointer shadow-lg shadow-ios-blue/20 text-xs">
+              <i data-lucide="sparkles" class="w-4 h-4 text-ios-cyan"></i>
+              <span id="scan-btn-text">Ambil Foto / Upload Makanan</span>
+              <input type="file" id="food-image-input" accept="image/*" capture="environment" onchange="handleFoodScan(event)" class="hidden">
+            </label>
+          </div>
+          <div id="scan-loading" class="hidden text-center text-xs text-ios-cyan py-2 animate-pulse font-medium">
+            ✨ Gemini sedang menganalisis foto makanan & menghitung kalori...
+          </div>
+        </div>
+
         <div class="bg-ios-card border border-white/10 rounded-[24px] p-4 space-y-3">
           <h3 class="text-sm font-bold text-white flex items-center space-x-2">
             <i data-lucide="plus-circle" class="w-4 h-4 text-ios-green"></i>
@@ -1256,7 +1224,6 @@
           </form>
         </div>
 
-        <!-- Meal Items by Category -->
         <div class="space-y-4">
           ${meals.length === 0 ? `
             <div class="bg-ios-card border border-white/10 rounded-2xl p-4 text-center text-xs text-neutral-500 italic">Belum ada makanan dicatat untuk tanggal ${formatDateDisplay(selectedDate)}.</div>
@@ -1290,6 +1257,75 @@
       `;
     }
 
+    async function handleFoodScan(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const loadingEl = document.getElementById('scan-loading');
+      const btnTextEl = document.getElementById('scan-btn-text');
+      if (loadingEl) loadingEl.classList.remove('hidden');
+      if (btnTextEl) btnTextEl.innerText = "Menganalisis Makanan...";
+
+      try {
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+          const base64Data = e.target.result.split(',')[1];
+          const mimeType = file.type || 'image/jpeg';
+
+          const apiKey = ""; 
+          const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+          const prompt = "Analyze this food image. Provide estimation for the meal name, estimated total calories (kcal), protein in grams, carbs in grams, and fat in grams. Respond strictly in valid JSON format with keys: name (string), calories (number), protein (number), carbs (number), fat (number).";
+
+          const payload = {
+            contents: [{
+              role: 'user',
+              parts: [
+                { text: prompt },
+                { inlineData: { mimeType: mimeType, data: base64Data } }
+              ]
+            }],
+            generationConfig: {
+              responseMimeType: "application/json"
+            }
+          };
+
+          const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+
+          const result = await response.json();
+          const candidate = result.candidates?.[0];
+          if (candidate && candidate.content?.parts?.[0]?.text) {
+            const jsonText = candidate.content.parts[0].text;
+            const parsed = JSON.parse(jsonText);
+
+            appState.meals.push({
+              id: Date.now().toString(),
+              date: selectedDate,
+              name: parsed.name || 'AI Scanned Meal',
+              category: 'Lunch',
+              calories: parseInt(parsed.calories) || 400,
+              protein: parseInt(parsed.protein) || 25,
+              carbs: parseInt(parsed.carbs) || 40,
+              fat: parseInt(parsed.fat) || 15
+            });
+
+            saveState();
+            renderView();
+          }
+        };
+        reader.readAsDataURL(file);
+      } catch (err) {
+        console.error("AI Scan Error:", err);
+      } finally {
+        if (loadingEl) loadingEl.classList.add('hidden');
+        if (btnTextEl) btnTextEl.innerText = "Ambil Foto / Upload Makanan";
+      }
+    }
+
     function handleManualMealSubmit(e) {
       e.preventDefault();
       try {
@@ -1315,15 +1351,44 @@
         selectedDate = date;
         saveState();
         renderView();
-      } catch (err) {
-        console.error("Error submitting meal:", err);
-      }
+      } catch (err) {}
     }
 
     function deleteMeal(id) {
       appState.meals = (appState.meals || []).filter(m => m.id !== id);
       saveState();
       renderView();
+    }
+
+    function initWeeklySparklineChart(weeklyStats) {
+      const ctx = document.getElementById('weeklySparklineChart');
+      if (!ctx || !window.Chart) return;
+      if (weeklySparklineInstance) {
+        try { weeklySparklineInstance.destroy(); } catch (e) {}
+      }
+
+      weeklySparklineInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: weeklyStats.sparklineLabels,
+          datasets: [{
+            data: weeklyStats.sparklineData,
+            borderColor: '#30d158',
+            backgroundColor: 'rgba(48, 209, 88, 0.12)',
+            borderWidth: 2.5,
+            fill: true,
+            tension: 0.3,
+            pointRadius: 3,
+            pointBackgroundColor: '#30d158'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false }, tooltip: { enabled: false } },
+          scales: { x: { display: false }, y: { display: false } }
+        }
+      });
     }
 
     function initProgressChart(subView) {
@@ -1358,25 +1423,22 @@
           maintainAspectRatio: false,
           plugins: { legend: { display: false } },
           scales: {
-            x: {
-              grid: { color: 'rgba(255, 255, 255, 0.05)' },
-              ticks: { color: '#8e8e93', font: { size: 10 } }
-            },
-            y: {
-              grid: { color: 'rgba(255, 255, 255, 0.05)' },
-              ticks: { color: '#8e8e93', font: { size: 10 } }
-            }
+            x: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#8e8e93', font: { size: 10 } } },
+            y: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#8e8e93', font: { size: 10 } } }
           }
         }
       });
     }
 
     function renderFitness(container) {
-      const runs = appState.fitness.runs || [];
-      const totalKm = runs.reduce((acc, r) => acc + (r.distance || 0), 0).toFixed(1);
+      const activeSubView = appState.subViews.fitness || 'running';
+      const runs = (appState.fitness.runs || []).filter(r => r.date === selectedDate);
+      const workouts = (appState.fitness.workouts || []).filter(w => w.date === selectedDate);
+      
+      const allRuns = appState.fitness.runs || [];
+      const totalKm = allRuns.reduce((acc, r) => acc + (r.distance || 0), 0).toFixed(1);
 
       container.innerHTML = `
-        <!-- Date Selector Header Bar -->
         <div class="bg-ios-card border border-white/10 rounded-2xl p-2.5 flex items-center justify-between text-xs font-semibold">
           <button onclick="shiftSelectedDate(-1)" class="p-2 bg-ios-cardSecondary rounded-xl ios-active text-neutral-300 hover:text-white">
             <i data-lucide="chevron-left" class="w-4 h-4"></i>
@@ -1387,6 +1449,15 @@
           </div>
           <button onclick="shiftSelectedDate(1)" class="p-2 bg-ios-cardSecondary rounded-xl ios-active text-neutral-300 hover:text-white">
             <i data-lucide="chevron-right" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <div class="bg-ios-cardSecondary p-1 rounded-2xl flex border border-white/5 text-xs font-semibold">
+          <button onclick="switchFitnessSubView('running')" class="flex-1 py-2 rounded-xl transition-all ${activeSubView === 'running' ? 'bg-ios-card text-white shadow-md' : 'text-neutral-400'}">
+            🏃‍♂️ Cardio / Lari
+          </button>
+          <button onclick="switchFitnessSubView('workout')" class="flex-1 py-2 rounded-xl transition-all ${activeSubView === 'workout' ? 'bg-ios-card text-white shadow-md' : 'text-neutral-400'}">
+            🏋️‍♂️ Strength / Workout
           </button>
         </div>
 
@@ -1402,91 +1473,121 @@
           </div>
         </div>
 
-        <div class="bg-ios-card border border-white/10 rounded-[24px] p-4 space-y-3">
-          <h3 class="text-sm font-bold text-white flex items-center space-x-1.5">
-            <i data-lucide="plus-circle" class="w-4 h-4 text-ios-purple"></i>
-            <span>Tambah Sesi Lari</span>
-          </h3>
-          <form onsubmit="handleAddRun(event)" class="space-y-2 text-xs">
-            <div>
-              <label class="text-[10px] text-neutral-400 font-medium">Tanggal Sesi</label>
-              <input type="date" id="run-date" value="${selectedDate}" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
-            </div>
-            <div class="grid grid-cols-2 gap-2">
-              <input type="number" step="0.1" id="run-dist" placeholder="Jarak (km)" required class="bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white">
-              <input type="text" id="run-time" placeholder="Durasi (mm:ss)" required class="bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white">
-            </div>
-            <div class="grid grid-cols-2 gap-2">
-              <input type="number" id="run-hr" placeholder="Avg HR (bpm)" class="bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white">
-              <input type="number" id="run-cal" placeholder="Kalori Terbakar" class="bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white">
-            </div>
-            <button type="submit" class="w-full py-2.5 bg-ios-purple text-white font-bold rounded-xl ios-active shadow-lg shadow-ios-purple/20">Simpan Sesi Lari</button>
-          </form>
-        </div>
-
-        <div class="space-y-2">
-          <h4 class="text-xs font-bold text-neutral-400 uppercase tracking-wider">Aktivitas Sesi Lari</h4>
-          ${runs.length === 0 ? `
-            <div class="bg-ios-card border border-white/10 rounded-2xl p-4 text-center text-xs text-neutral-500 italic">Belum ada aktivitas lari dicatat.</div>
-          ` : runs.slice().reverse().map(r => {
-            if (editingRunId === r.id) {
-              return `
-                <div class="bg-ios-card border border-ios-purple/50 rounded-2xl p-4 space-y-2">
-                  <div class="flex justify-between items-center pb-1">
-                    <span class="text-xs font-bold text-ios-purple">Edit Sesi Lari</span>
-                    <button onclick="cancelEditRun()" class="text-xs text-neutral-400 hover:text-white">Batal</button>
-                  </div>
-                  <form onsubmit="handleSaveEditedRun(event, '${r.id}')" class="space-y-2 text-xs">
-                    <div>
-                      <label class="text-[10px] text-neutral-400">Tanggal Sesi</label>
-                      <input type="date" id="edit-run-date" value="${r.date || selectedDate}" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2 text-white mt-0.5">
-                    </div>
-                    <div class="grid grid-cols-2 gap-2">
-                      <div>
-                        <label class="text-[10px] text-neutral-400">Jarak (km)</label>
-                        <input type="number" step="0.1" id="edit-run-dist" value="${r.distance}" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2 text-white mt-0.5">
-                      </div>
-                      <div>
-                        <label class="text-[10px] text-neutral-400">Durasi (mm:ss)</label>
-                        <input type="text" id="edit-run-time" value="${r.duration}" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2 text-white mt-0.5">
-                      </div>
-                    </div>
-                    <div class="grid grid-cols-2 gap-2">
-                      <div>
-                        <label class="text-[10px] text-neutral-400">Heart Rate (bpm)</label>
-                        <input type="number" id="edit-run-hr" value="${r.heartRate || ''}" class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2 text-white mt-0.5">
-                      </div>
-                      <div>
-                        <label class="text-[10px] text-neutral-400">Kalori</label>
-                        <input type="number" id="edit-run-cal" value="${r.calories || ''}" class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2 text-white mt-0.5">
-                      </div>
-                    </div>
-                    <button type="submit" class="w-full py-2 bg-ios-purple text-white font-bold rounded-xl ios-active mt-1">Simpan Perubahan</button>
-                  </form>
+        ${activeSubView === 'running' ? `
+          <div class="bg-ios-card border border-white/10 rounded-[24px] p-4 space-y-3">
+            <h3 class="text-sm font-bold text-white flex items-center space-x-1.5">
+              <i data-lucide="plus-circle" class="w-4 h-4 text-ios-purple"></i>
+              <span>Tambah Sesi Lari (Auto Pace Calculator)</span>
+            </h3>
+            <form onsubmit="handleAddRun(event)" class="space-y-2 text-xs">
+              <div>
+                <label class="text-[10px] text-neutral-400 font-medium">Tanggal Sesi</label>
+                <input type="date" id="run-date" value="${selectedDate}" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="text-[10px] text-neutral-400 font-medium">Jarak (km)</label>
+                  <input type="number" step="0.1" id="run-dist" placeholder="contoh: 5.0" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
                 </div>
-              `;
-            }
+                <div>
+                  <label class="text-[10px] text-neutral-400 font-medium">Durasi Total (menit)</label>
+                  <input type="number" id="run-mins" placeholder="contoh: 28" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="text-[10px] text-neutral-400 font-medium">Avg HR (bpm)</label>
+                  <input type="number" id="run-hr" placeholder="150" class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
+                </div>
+                <div>
+                  <label class="text-[10px] text-neutral-400 font-medium">Kalori Terbakar (kcal)</label>
+                  <input type="number" id="run-cal" placeholder="350" class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
+                </div>
+              </div>
+              <button type="submit" class="w-full py-2.5 bg-ios-purple text-white font-bold rounded-xl ios-active shadow-lg shadow-ios-purple/20">Simpan Sesi Lari & Hitung Pace</button>
+            </form>
+          </div>
 
-            return `
+          <div class="space-y-2">
+            <h4 class="text-xs font-bold text-neutral-400 uppercase tracking-wider">Aktivitas Lari (${formatDateDisplay(selectedDate)})</h4>
+            ${runs.length === 0 ? `
+              <div class="bg-ios-card border border-white/10 rounded-2xl p-4 text-center text-xs text-neutral-500 italic">Belum ada sesi lari dicatat untuk tanggal ini.</div>
+            ` : runs.map(r => `
               <div class="bg-ios-card border border-white/10 rounded-2xl p-4 flex justify-between items-center">
                 <div>
                   <p class="text-base font-extrabold text-white">${r.distance} km <span class="text-xs font-normal text-neutral-400">(${r.duration})</span></p>
-                  <p class="text-xs text-neutral-400 mt-0.5">Pace: ${r.pace || '-'} • HR: ${r.heartRate || '-'} bpm • ${r.calories || 0} kcal</p>
+                  <p class="text-xs text-neutral-400 mt-0.5">Pace: <span class="text-ios-cyan font-bold">${r.pace || '-'} min/km</span> • HR: ${r.heartRate || '-'} bpm • ${r.calories || 0} kcal</p>
                   <span class="text-[10px] text-neutral-500">📅 ${formatDateDisplay(r.date)}</span>
                 </div>
-                <div class="flex items-center space-x-1">
-                  <button onclick="startEditRun('${r.id}')" class="text-neutral-400 hover:text-ios-blue p-1.5 ios-active" title="Edit">
-                    <i data-lucide="pencil" class="w-4 h-4"></i>
-                  </button>
-                  <button onclick="deleteRun('${r.id}')" class="text-neutral-400 hover:text-ios-red p-1.5 ios-active" title="Hapus">
-                    <i data-lucide="trash-2" class="w-4 h-4"></i>
-                  </button>
+                <button onclick="deleteRun('${r.id}')" class="text-neutral-400 hover:text-ios-red p-1.5 ios-active" title="Hapus">
+                  <i data-lucide="trash-2" class="w-4 h-4"></i>
+                </button>
+              </div>
+            `).join('')}
+          </div>
+        ` : `
+          <div class="bg-ios-card border border-white/10 rounded-[24px] p-4 space-y-3">
+            <h3 class="text-sm font-bold text-white flex items-center space-x-1.5">
+              <i data-lucide="plus-circle" class="w-4 h-4 text-ios-blue"></i>
+              <span>Tambah Sesi Workout / Strength</span>
+            </h3>
+            <form onsubmit="handleAddWorkout(event)" class="space-y-2 text-xs">
+              <div>
+                <label class="text-[10px] text-neutral-400 font-medium">Tanggal Sesi</label>
+                <input type="date" id="workout-date" value="${selectedDate}" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
+              </div>
+              <div>
+                <label class="text-[10px] text-neutral-400 font-medium">Judul / Fokus Latihan</label>
+                <input type="text" id="workout-title" placeholder="contoh: Upper Body Hypertrophy" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
+              </div>
+              <div class="grid grid-cols-3 gap-2">
+                <div>
+                  <label class="text-[10px] text-neutral-400 font-medium">Kategori</label>
+                  <select id="workout-category" class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
+                    <option value="Strength">Strength</option>
+                    <option value="Hypertrophy">Hypertrophy</option>
+                    <option value="CrossFit">CrossFit</option>
+                    <option value="Yoga/Mobility">Yoga / Mobility</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="text-[10px] text-neutral-400 font-medium">Durasi</label>
+                  <input type="text" id="workout-duration" placeholder="45 mins" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
+                </div>
+                <div>
+                  <label class="text-[10px] text-neutral-400 font-medium">Kalori</label>
+                  <input type="number" id="workout-cal" placeholder="300" class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
                 </div>
               </div>
-            `;
-          }).join('')}
-        </div>
+              <button type="submit" class="w-full py-2.5 bg-ios-blue text-white font-bold rounded-xl ios-active shadow-lg shadow-ios-blue/20">Simpan Sesi Workout</button>
+            </form>
+          </div>
+
+          <div class="space-y-2">
+            <h4 class="text-xs font-bold text-neutral-400 uppercase tracking-wider">Aktivitas Workout (${formatDateDisplay(selectedDate)})</h4>
+            ${workouts.length === 0 ? `
+              <div class="bg-ios-card border border-white/10 rounded-2xl p-4 text-center text-xs text-neutral-500 italic">Belum ada sesi workout dicatat untuk tanggal ini.</div>
+            ` : workouts.map(w => `
+              <div class="bg-ios-card border border-white/10 rounded-2xl p-4 flex justify-between items-center">
+                <div>
+                  <p class="text-base font-extrabold text-white">${w.title} <span class="text-xs font-normal text-ios-cyan">(${w.category})</span></p>
+                  <p class="text-xs text-neutral-400 mt-0.5">Durasi: ${w.duration} • ${w.calories || 0} kcal</p>
+                  <span class="text-[10px] text-neutral-500">📅 ${formatDateDisplay(w.date)}</span>
+                </div>
+                <button onclick="deleteWorkout('${w.id}')" class="text-neutral-400 hover:text-ios-red p-1.5 ios-active" title="Hapus">
+                  <i data-lucide="trash-2" class="w-4 h-4"></i>
+                </button>
+              </div>
+            `).join('')}
+          </div>
+        `}
       `;
+    }
+
+    function switchFitnessSubView(sub) {
+      appState.subViews.fitness = sub;
+      saveState();
+      renderView();
     }
 
     function handleAddRun(e) {
@@ -1494,103 +1595,78 @@
       try {
         const date = document.getElementById('run-date').value || selectedDate;
         const dist = parseFloat(document.getElementById('run-dist').value) || 0;
-        const dur = document.getElementById('run-time').value || '00:00';
+        const mins = parseInt(document.getElementById('run-mins').value) || 0;
         const hr = parseInt(document.getElementById('run-hr').value) || 0;
         const cal = parseInt(document.getElementById('run-cal').value) || 0;
 
+        let paceStr = '-';
+        if (dist > 0 && mins > 0) {
+          const totalSecs = (mins * 60) / dist;
+          const paceMins = Math.floor(totalSecs / 60);
+          const paceSecs = Math.round(totalSecs % 60);
+          paceStr = `${paceMins}:${paceSecs < 10 ? '0' : ''}${paceSecs}`;
+        }
+
+        if (!appState.fitness.runs) appState.fitness.runs = [];
         appState.fitness.runs.push({
           id: Date.now().toString(),
-          date: date,
+          date,
           distance: dist,
-          duration: dur,
-          pace: '5:30',
+          duration: `${mins} mins`,
+          pace: paceStr,
           heartRate: hr,
-          calories: cal
+          calories: cal,
+          type: 'Running'
         });
 
         selectedDate = date;
         saveState();
         renderView();
-      } catch (err) {
-        console.error("Error adding run:", err);
-      }
-    }
-
-    function startEditRun(id) {
-      editingRunId = id;
-      renderView();
-    }
-
-    function cancelEditRun() {
-      editingRunId = null;
-      renderView();
-    }
-
-    function handleSaveEditedRun(e, id) {
-      e.preventDefault();
-      try {
-        const run = (appState.fitness.runs || []).find(r => r.id === id);
-        if (!run) return;
-
-        run.date = document.getElementById('edit-run-date').value || run.date;
-        run.distance = parseFloat(document.getElementById('edit-run-dist').value) || run.distance;
-        run.duration = document.getElementById('edit-run-time').value || run.duration;
-        run.heartRate = parseInt(document.getElementById('edit-run-hr').value) || 0;
-        run.calories = parseInt(document.getElementById('edit-run-cal').value) || 0;
-
-        editingRunId = null;
-        saveState();
-        renderView();
-      } catch (err) {
-        console.error("Error saving edited run:", err);
-      }
+      } catch (err) {}
     }
 
     function deleteRun(id) {
       appState.fitness.runs = (appState.fitness.runs || []).filter(r => r.id !== id);
-      if (editingRunId === id) editingRunId = null;
       saveState();
       renderView();
     }
 
-    function initWeeklySparklineChart(weeklyStats) {
-      const ctx = document.getElementById('weeklySparklineChart');
-      if (!ctx || !window.Chart) return;
-      if (weeklySparklineInstance) {
-        try { weeklySparklineInstance.destroy(); } catch (e) {}
-      }
+    function handleAddWorkout(e) {
+      e.preventDefault();
+      try {
+        const date = document.getElementById('workout-date').value || selectedDate;
+        const title = document.getElementById('workout-title').value;
+        const category = document.getElementById('workout-category').value;
+        const duration = document.getElementById('workout-duration').value;
+        const calories = parseInt(document.getElementById('workout-cal').value) || 0;
 
-      weeklySparklineInstance = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: weeklyStats.sparklineLabels,
-          datasets: [{
-            data: weeklyStats.sparklineData,
-            borderColor: '#30d158',
-            backgroundColor: 'rgba(48, 209, 88, 0.12)',
-            borderWidth: 2.5,
-            fill: true,
-            tension: 0.3,
-            pointRadius: 3,
-            pointBackgroundColor: '#30d158'
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: { x: { display: false }, y: { display: false } }
-        }
-      });
+        if (!appState.fitness.workouts) appState.fitness.workouts = [];
+        appState.fitness.workouts.push({
+          id: Date.now().toString(),
+          date,
+          title,
+          category,
+          duration,
+          calories
+        });
+
+        selectedDate = date;
+        saveState();
+        renderView();
+      } catch (err) {}
+    }
+
+    function deleteWorkout(id) {
+      appState.fitness.workouts = (appState.fitness.workouts || []).filter(w => w.id !== id);
+      saveState();
+      renderView();
     }
 
     window.onload = function() {
       try {
         renderView();
         updateScoreDot();
-      } catch (e) {
-        console.error("Error on page load initialization:", e);
-      }
+      } catch (e) {}
     };
   </script>
 </body>
