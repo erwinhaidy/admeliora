@@ -100,20 +100,20 @@
       background-color: rgba(44, 44, 46, 0.9);
       border: 1px solid rgba(255, 255, 255, 0.15);
       border-radius: 10px;
-      padding: 4px 6px;
+      padding: 6px 10px;
       color: #ffffff;
-      font-size: 11px;
+      font-size: 13px;
       font-family: inherit;
       text-align: center;
-      width: 125px;
+      width: 130px;
       box-sizing: border-box;
     }
     input[type="date"]::-webkit-calendar-picker-indicator {
       filter: invert(1);
       cursor: pointer;
-      opacity: 0.7;
-      width: 13px;
-      height: 13px;
+      opacity: 0.8;
+      width: 15px;
+      height: 15px;
     }
   </style>
 </head>
@@ -175,25 +175,25 @@
   </div>
 
   <!-- Scan Category Confirmation Modal -->
-  <div id="scan-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 transition-opacity">
+  <div id="scan-modal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden items-center justify-center p-4 transition-opacity">
     <div class="bg-ios-card border border-white/10 w-full max-w-sm rounded-[32px] p-6 space-y-4 shadow-2xl">
       <div class="text-center space-y-1">
         <div class="w-12 h-12 rounded-2xl bg-ios-blue/20 text-ios-blue mx-auto flex items-center justify-center mb-2">
           <i data-lucide="sparkles" class="w-6 h-6"></i>
         </div>
         <h3 class="text-lg font-bold text-white">Konfirmasi Kategori Makanan</h3>
-        <p id="scan-preview-title" class="text-xs text-neutral-400">Pilih waktu makan untuk hasil scan AI:</p>
+        <p class="text-xs text-neutral-400">Hasil deteksi AI Gemini untuk foto Anda:</p>
       </div>
 
-      <div class="space-y-2 pt-1 text-xs">
-        <div class="bg-ios-cardSecondary p-3 rounded-2xl border border-white/5 space-y-1 text-center">
-          <p id="scan-detected-info" class="font-bold text-white text-sm">-</p>
-          <p id="scan-detected-macros" class="text-neutral-400 text-[11px]">-</p>
+      <div class="space-y-3 pt-1 text-xs">
+        <div class="bg-ios-cardSecondary p-3.5 rounded-2xl border border-white/5 space-y-1 text-center">
+          <p id="scan-detected-info" class="font-extrabold text-white text-base">-</p>
+          <p id="scan-detected-macros" class="text-ios-cyan text-xs font-medium">-</p>
         </div>
 
         <div>
-          <label class="text-[10px] text-neutral-400 font-medium">Kategori Waktu Makan</label>
-          <select id="scan-category-select" class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl px-3 py-2.5 text-white mt-1 text-xs">
+          <label class="text-[10px] text-neutral-400 font-medium">Pilih Waktu Makan</label>
+          <select id="scan-category-select" class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl px-3.5 py-3 text-white mt-1 text-xs font-semibold">
             <option value="Breakfast">Sarapan (Breakfast)</option>
             <option value="Lunch" selected>Makan Siang (Lunch)</option>
             <option value="Dinner">Makan Malam (Dinner)</option>
@@ -202,10 +202,10 @@
         </div>
 
         <div class="grid grid-cols-2 gap-2 pt-2">
-          <button onclick="closeScanModal()" class="py-2.5 bg-ios-cardSecondary text-neutral-300 font-bold rounded-xl ios-active">
+          <button onclick="closeScanModal()" class="py-3 bg-ios-cardSecondary text-neutral-300 font-bold rounded-xl ios-active text-xs">
             Batal
           </button>
-          <button onclick="confirmScannedMeal()" class="py-2.5 bg-ios-blue text-white font-bold rounded-xl ios-active">
+          <button onclick="confirmScannedMeal()" class="py-3 bg-ios-blue text-white font-bold rounded-xl ios-active text-xs shadow-lg shadow-ios-blue/30">
             Simpan Makanan
           </button>
         </div>
@@ -214,7 +214,7 @@
   </div>
 
   <!-- Edit Item Modal -->
-  <div id="edit-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 transition-opacity">
+  <div id="edit-modal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden items-center justify-center p-4 transition-opacity">
     <div class="bg-ios-card border border-white/10 w-full max-w-sm rounded-[32px] p-6 space-y-4 shadow-2xl">
       <div class="flex justify-between items-center border-b border-white/10 pb-3">
         <h3 id="edit-modal-title" class="text-lg font-bold text-white">Ubah Data</h3>
@@ -229,7 +229,7 @@
   </div>
 
   <!-- Profile & Metrics Modal -->
-  <div id="profile-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-end sm:items-center justify-center p-0 sm:p-4 transition-opacity">
+  <div id="profile-modal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden items-end sm:items-center justify-center p-0 sm:p-4 transition-opacity">
     <div class="bg-ios-card border border-white/10 w-full max-w-md rounded-t-[32px] sm:rounded-[32px] p-6 space-y-4 max-h-[90vh] overflow-y-auto no-scrollbar">
       <div class="flex justify-between items-center border-b border-white/10 pb-3">
         <div>
@@ -307,7 +307,7 @@
   </div>
 
   <!-- Export & Backup Modal -->
-  <div id="drive-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-end sm:items-center justify-center p-0 sm:p-4 transition-opacity">
+  <div id="drive-modal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden items-end sm:items-center justify-center p-0 sm:p-4 transition-opacity">
     <div class="bg-ios-card border border-white/10 w-full max-w-md rounded-t-[32px] sm:rounded-[32px] p-6 space-y-4 max-h-[90vh] overflow-y-auto no-scrollbar">
       <div class="flex justify-between items-center border-b border-white/10 pb-3">
         <div class="flex items-center space-x-2">
@@ -495,7 +495,7 @@
 
         const baseHydration = (appState.profile.weight || 70.00) * 35;
         let workoutExtra = 0;
-        const runs = (appState.fitness.runs || []).filter(r => r.date === dateStr);
+        const runs = ((appState.fitness && appState.fitness.runs) || []).filter(r => r.date === dateStr);
         runs.forEach(r => {
           if (r.durationMinutes) {
             workoutExtra += (r.durationMinutes || 0) * 12;
@@ -554,8 +554,8 @@
         const dayMeals = (appState.meals || []).filter(m => m.date === dateStr);
         const totalCaloriesLogged = dayMeals.reduce((sum, m) => sum + (m.calories || 0), 0);
         
-        const runCalories = (appState.fitness.runs || []).filter(r => r.date === dateStr).reduce((sum, r) => sum + (r.calories || 0), 0);
-        const workoutCalories = (appState.fitness.workouts || []).filter(w => w.date === dateStr).reduce((sum, w) => sum + (w.calories || 0), 0);
+        const runCalories = ((appState.fitness && appState.fitness.runs) || []).filter(r => r.date === dateStr).reduce((sum, r) => sum + (r.calories || 0), 0);
+        const workoutCalories = ((appState.fitness && appState.fitness.workouts) || []).filter(w => w.date === dateStr).reduce((sum, w) => sum + (w.calories || 0), 0);
         const totalBurned = runCalories + workoutCalories;
 
         const netCals = totalCaloriesLogged - totalBurned;
@@ -566,7 +566,9 @@
         if (calorieRatio >= 0.5 && calorieRatio <= 1.05) mealScore = 35;
         else if (calorieRatio > 0) mealScore = 20;
 
-        const fitnessScore = ((appState.fitness.runs || []).filter(r => r.date === dateStr).length > 0 || (appState.fitness.workouts || []).filter(w => w.date === dateStr).length > 0) ? 25 : 10;
+        const hasRuns = ((appState.fitness && appState.fitness.runs) || []).filter(r => r.date === dateStr).length > 0;
+        const hasWorkouts = ((appState.fitness && appState.fitness.workouts) || []).filter(w => w.date === dateStr).length > 0;
+        const fitnessScore = (hasRuns || hasWorkouts) ? 25 : 10;
 
         return Math.min(100, Math.round(waterScore + mealScore + fitnessScore));
       } catch (e) {
@@ -623,7 +625,10 @@
           ...parsed,
           profile: { ...DEFAULT_STATE.profile, ...(parsed.profile || {}) },
           water: { ...DEFAULT_STATE.water, ...(parsed.water || {}) },
-          fitness: { ...DEFAULT_STATE.fitness, ...(parsed.fitness || {}) },
+          fitness: {
+            runs: parsed.fitness && parsed.fitness.runs ? parsed.fitness.runs : [],
+            workouts: parsed.fitness && parsed.fitness.workouts ? parsed.fitness.workouts : []
+          },
           subViews: { ...DEFAULT_STATE.subViews, ...(parsed.subViews || {}) }
         };
       } catch (e) {
@@ -652,7 +657,7 @@
       document.getElementById('user-water-goal').value = appState.water.goal || 3000;
       
       toggleCustomWaterInput();
-      document.getElementById('profile-modal').classList.remove('hidden');
+      document.getElementById('profile-modal').style.display = 'flex';
     }
 
     function toggleCustomWaterInput() {
@@ -663,7 +668,7 @@
     }
 
     function closeProfileModal() {
-      document.getElementById('profile-modal').classList.add('hidden');
+      document.getElementById('profile-modal').style.display = 'none';
     }
 
     function saveProfile() {
@@ -683,11 +688,11 @@
     }
 
     function openDriveSyncModal() {
-      document.getElementById('drive-modal').classList.remove('hidden');
+      document.getElementById('drive-modal').style.display = 'flex';
     }
 
     function closeDriveSyncModal() {
-      document.getElementById('drive-modal').classList.add('hidden');
+      document.getElementById('drive-modal').style.display = 'none';
     }
 
     function downloadBackupFile() {
@@ -723,7 +728,6 @@
       const targetEl = document.getElementById('app-content');
       if (!targetEl) return;
       try {
-        // Temporarily adjust styling for clean screenshot export on mobile
         const canvas = await html2canvas(targetEl, {
           backgroundColor: '#000000',
           scale: 2,
@@ -819,8 +823,8 @@
       const dayMeals = (appState.meals || []).filter(m => m.date === selectedDate);
       const totalLoggedCals = dayMeals.reduce((sum, m) => sum + (m.calories || 0), 0);
       
-      const runBurnedCals = (appState.fitness.runs || []).filter(r => r.date === selectedDate).reduce((sum, r) => sum + (r.calories || 0), 0);
-      const workoutBurnedCals = (appState.fitness.workouts || []).filter(w => w.date === selectedDate).reduce((sum, w) => sum + (w.calories || 0), 0);
+      const runBurnedCals = ((appState.fitness && appState.fitness.runs) || []).filter(r => r.date === selectedDate).reduce((sum, r) => sum + (r.calories || 0), 0);
+      const workoutBurnedCals = ((appState.fitness && appState.fitness.workouts) || []).filter(w => w.date === selectedDate).reduce((sum, w) => sum + (w.calories || 0), 0);
       const totalBurnedCals = runBurnedCals + workoutBurnedCals;
 
       const netCals = totalLoggedCals - totalBurnedCals;
@@ -835,7 +839,7 @@
       const isToday = selectedDate === getTodayString();
 
       container.innerHTML = `
-        <div class="bg-ios-card border border-white/10 rounded-2xl p-2 flex items-center justify-between text-xs font-semibold">
+        <div class="bg-ios-card border border-white/10 rounded-2xl p-2.5 flex items-center justify-between text-xs font-semibold">
           <button onclick="shiftSelectedDate(-1)" class="p-2 bg-ios-cardSecondary rounded-xl ios-active text-neutral-300 hover:text-white flex items-center gap-1">
             <i data-lucide="chevron-left" class="w-4 h-4"></i>
           </button>
@@ -969,9 +973,9 @@
             </p>
             
             <div class="grid grid-cols-3 gap-1 pt-1 border-t border-white/5">
-              <button onclick="addWater(-250)" class="py-1 rounded-lg bg-ios-cardSecondary text-[10px] font-bold text-neutral-400 hover:text-ios-red ios-active text-center">-250</button>
-              <button onclick="addWater(250)" class="py-1 rounded-lg bg-ios-cyan/20 border border-ios-cyan/30 text-[10px] font-bold text-ios-cyan ios-active text-center">+250</button>
-              <button onclick="addWater(500)" class="py-1 rounded-lg bg-ios-cyan/20 border border-ios-cyan/30 text-[10px] font-bold text-ios-cyan ios-active text-center">+500</button>
+              <button onclick="addWater(-250)" class="py-1.5 rounded-lg bg-ios-cardSecondary text-[10px] font-bold text-neutral-400 hover:text-ios-red ios-active text-center">-250</button>
+              <button onclick="addWater(250)" class="py-1.5 rounded-lg bg-ios-cyan/20 border border-ios-cyan/30 text-[10px] font-bold text-ios-cyan ios-active text-center">+250</button>
+              <button onclick="addWater(500)" class="py-1.5 rounded-lg bg-ios-cyan/20 border border-ios-cyan/30 text-[10px] font-bold text-ios-cyan ios-active text-center">+500</button>
             </div>
           </div>
 
@@ -1062,7 +1066,7 @@
             <i data-lucide="plus-circle" class="w-4 h-4 text-ios-blue"></i>
             <span>Catat Pengukuran Baru</span>
           </h3>
-          <form onsubmit="handleAddWeightLog(event)" class="space-y-2 text-xs">
+          <form onsubmit="handleAddWeightLog(event)" class="space-y-2.5 text-xs">
             <div>
               <label class="text-[10px] text-neutral-400 font-medium">Tanggal Pencatatan</label>
               <input type="date" id="new-log-date" value="${todayStr}" required>
@@ -1077,7 +1081,7 @@
                 <input type="number" step="0.01" id="new-waist-val" value="${(appState.profile.currentWaist || 88.00).toFixed(2)}" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
               </div>
             </div>
-            <button type="submit" class="w-full py-2.5 bg-ios-blue text-white font-bold rounded-xl ios-active mt-1">
+            <button type="submit" class="w-full py-3 bg-ios-blue text-white font-bold rounded-xl ios-active mt-1">
               Simpan / Update Pengukuran
             </button>
           </form>
@@ -1092,7 +1096,7 @@
                 <span class="text-[10px] text-neutral-400">📅 ${formatDateDisplay(l.date)}</span>
               </div>
               <div class="flex items-center space-x-1">
-                <button onclick="openEditWeightLog('${l.date}')" class="px-2.5 py-1.5 bg-ios-cardSecondary border border-white/10 rounded-xl text-ios-blue font-bold ios-active">Ubah</button>
+                <button onclick="openEditWeightLog('${l.date}')" class="px-3 py-1.5 bg-ios-cardSecondary border border-white/10 rounded-xl text-ios-blue font-bold ios-active">Ubah</button>
                 <button onclick="deleteWeightLog('${l.date}')" class="text-neutral-400 hover:text-ios-red p-1.5 ios-active" title="Hapus">
                   <i data-lucide="trash-2" class="w-4 h-4"></i>
                 </button>
@@ -1193,16 +1197,16 @@
         <form onsubmit="handleSaveEditWeightLog(event, '${dateStr}')" class="space-y-3">
           <div>
             <label class="text-[10px] text-neutral-400 font-medium">Berat Badan (kg)</label>
-            <input type="number" step="0.01" id="edit-weight" value="${log.weight.toFixed(2)}" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
+            <input type="number" step="0.01" id="edit-weight" value="${log.weight.toFixed(2)}" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-3 text-white mt-1">
           </div>
           <div>
             <label class="text-[10px] text-neutral-400 font-medium">Lingkar Pinggang (cm)</label>
-            <input type="number" step="0.01" id="edit-waist" value="${log.waist ? log.waist.toFixed(2) : '88.00'}" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
+            <input type="number" step="0.01" id="edit-waist" value="${log.waist ? log.waist.toFixed(2) : '88.00'}" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-3 text-white mt-1">
           </div>
-          <button type="submit" class="w-full py-2.5 bg-ios-blue text-white font-bold rounded-xl ios-active">Simpan Perubahan</button>
+          <button type="submit" class="w-full py-3 bg-ios-blue text-white font-bold rounded-xl ios-active mt-2">Simpan Perubahan</button>
         </form>
       `;
-      document.getElementById('edit-modal').classList.remove('hidden');
+      document.getElementById('edit-modal').style.display = 'flex';
     }
 
     function handleSaveEditWeightLog(e, dateStr) {
@@ -1254,7 +1258,7 @@
       ];
 
       container.innerHTML = `
-        <div class="bg-ios-card border border-white/10 rounded-2xl p-2 flex items-center justify-between text-xs font-semibold">
+        <div class="bg-ios-card border border-white/10 rounded-2xl p-2.5 flex items-center justify-between text-xs font-semibold">
           <button onclick="shiftSelectedDate(-1)" class="p-2 bg-ios-cardSecondary rounded-xl ios-active text-neutral-300 hover:text-white">
             <i data-lucide="chevron-left" class="w-4 h-4"></i>
           </button>
@@ -1303,19 +1307,19 @@
               </div>
               <div>
                 <h3 class="text-xs font-bold text-white uppercase tracking-wider">Scan Makanan AI</h3>
-                <p class="text-[10px] text-neutral-300">Foto dari kamera atau pilih file dari galeri HP</p>
+                <p class="text-[10px] text-neutral-300">Foto dari kamera atau galeri iPhone</p>
               </div>
             </div>
           </div>
 
           <div class="grid grid-cols-2 gap-2 pt-1">
-            <label class="py-2.5 bg-ios-blue text-white font-bold rounded-xl ios-active flex items-center justify-center space-x-1.5 cursor-pointer shadow-lg shadow-ios-blue/20 text-xs">
+            <label class="py-3 bg-ios-blue text-white font-bold rounded-xl ios-active flex items-center justify-center space-x-1.5 cursor-pointer shadow-lg shadow-ios-blue/20 text-xs">
               <i data-lucide="camera" class="w-3.5 h-3.5"></i>
               <span>Kamera HP</span>
               <input type="file" id="food-camera-input" accept="image/*" capture="environment" onchange="handleFoodScan(event)" class="hidden">
             </label>
 
-            <label class="py-2.5 bg-ios-cardSecondary border border-white/10 text-white font-bold rounded-xl ios-active flex items-center justify-center space-x-1.5 cursor-pointer text-xs">
+            <label class="py-3 bg-ios-cardSecondary border border-white/10 text-white font-bold rounded-xl ios-active flex items-center justify-center space-x-1.5 cursor-pointer text-xs">
               <i data-lucide="image" class="w-3.5 h-3.5 text-ios-cyan"></i>
               <span>Pilih Galeri</span>
               <input type="file" id="food-gallery-input" accept="image/*" onchange="handleFoodScan(event)" class="hidden">
@@ -1323,7 +1327,7 @@
           </div>
 
           <div id="scan-loading" class="hidden text-center text-xs text-ios-cyan py-2 animate-pulse font-medium">
-            ✨ Gemini sedang menganalisis foto makanan & menghitung kalori...
+            ✨ Gemini AI sedang menganalisis foto makanan...
           </div>
         </div>
 
@@ -1332,27 +1336,27 @@
             <i data-lucide="plus-circle" class="w-4 h-4 text-ios-green"></i>
             <span>Catat Makanan Baru</span>
           </h3>
-          <form onsubmit="handleManualMealSubmit(event)" class="space-y-2 text-xs">
+          <form onsubmit="handleManualMealSubmit(event)" class="space-y-2.5 text-xs">
             <div>
               <label class="text-[10px] text-neutral-400 font-medium">Tanggal Makan</label>
               <input type="date" id="manual-meal-date" value="${selectedDate}">
             </div>
-            <input type="text" id="manual-meal-name" placeholder="Nama Makanan (contoh: Ayam Dada Bakar)" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white">
+            <input type="text" id="manual-meal-name" placeholder="Nama Makanan (contoh: Dada Ayam Bakar)" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-3 text-white">
             <div class="grid grid-cols-2 gap-2">
-              <select id="manual-meal-category" class="bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white">
+              <select id="manual-meal-category" class="bg-ios-cardSecondary border border-white/10 rounded-xl p-3 text-white">
                 <option value="Breakfast">Sarapan (Breakfast)</option>
                 <option value="Lunch">Makan Siang (Lunch)</option>
                 <option value="Dinner">Makan Malam (Dinner)</option>
                 <option value="Snack">Cemilan (Snack)</option>
               </select>
-              <input type="number" id="manual-meal-calories" placeholder="Kalori (kcal)" required class="bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white">
+              <input type="number" id="manual-meal-calories" placeholder="Kalori (kcal)" required class="bg-ios-cardSecondary border border-white/10 rounded-xl p-3 text-white">
             </div>
             <div class="grid grid-cols-3 gap-2">
-              <input type="number" id="manual-meal-protein" placeholder="Protein (g)" class="bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white">
-              <input type="number" id="manual-meal-carbs" placeholder="Karbo (g)" class="bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white">
-              <input type="number" id="manual-meal-fat" placeholder="Lemak (g)" class="bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white">
+              <input type="number" id="manual-meal-protein" placeholder="Protein (g)" class="bg-ios-cardSecondary border border-white/10 rounded-xl p-3 text-white">
+              <input type="number" id="manual-meal-carbs" placeholder="Karbo (g)" class="bg-ios-cardSecondary border border-white/10 rounded-xl p-3 text-white">
+              <input type="number" id="manual-meal-fat" placeholder="Lemak (g)" class="bg-ios-cardSecondary border border-white/10 rounded-xl p-3 text-white">
             </div>
-            <button type="submit" class="w-full py-2.5 bg-ios-green text-black font-bold rounded-xl ios-active shadow-lg shadow-ios-green/20">
+            <button type="submit" class="w-full py-3 bg-ios-green text-black font-bold rounded-xl ios-active shadow-lg shadow-ios-green/20">
               Tambah Makanan
             </button>
           </form>
@@ -1380,7 +1384,7 @@
                       <p class="text-xs text-neutral-400 mt-0.5">${m.calories} kcal • P: ${m.protein || 0}g | C: ${m.carbs || 0}g | F: ${m.fat || 0}g</p>
                     </div>
                     <div class="flex items-center space-x-1">
-                      <button onclick="openEditMeal('${m.id}')" class="px-2.5 py-1.5 bg-ios-cardSecondary border border-white/10 rounded-xl text-ios-blue text-xs font-bold ios-active" title="Ubah">Ubah</button>
+                      <button onclick="openEditMeal('${m.id}')" class="px-3 py-1.5 bg-ios-cardSecondary border border-white/10 rounded-xl text-ios-blue text-xs font-bold ios-active">Ubah</button>
                       <button onclick="deleteMeal('${m.id}')" class="text-neutral-400 hover:text-ios-red p-1.5 ios-active" title="Hapus">
                         <i data-lucide="trash-2" class="w-4 h-4"></i>
                       </button>
@@ -1458,7 +1462,7 @@
               
               const scanModal = document.getElementById('scan-modal');
               if (scanModal) {
-                scanModal.classList.remove('hidden');
+                scanModal.style.display = 'flex';
               }
             }
           } catch (parseErr) {
@@ -1478,11 +1482,11 @@
 
     function closeScanModal() {
       tempScannedMeal = null;
-      document.getElementById('scan-modal').classList.add('hidden');
+      document.getElementById('scan-modal').style.display = 'none';
     }
 
     function closeEditModal() {
-      document.getElementById('edit-modal').classList.add('hidden');
+      document.getElementById('edit-modal').style.display = 'none';
     }
 
     function confirmScannedMeal() {
@@ -1533,12 +1537,12 @@
         <form onsubmit="handleSaveEditMeal(event, '${id}')" class="space-y-3">
           <div>
             <label class="text-[10px] text-neutral-400 font-medium">Nama Makanan</label>
-            <input type="text" id="edit-meal-name" value="${meal.name}" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
+            <input type="text" id="edit-meal-name" value="${meal.name}" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-3 text-white mt-1">
           </div>
           <div class="grid grid-cols-2 gap-2">
             <div>
               <label class="text-[10px] text-neutral-400 font-medium">Kategori</label>
-              <select id="edit-meal-cat" class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
+              <select id="edit-meal-cat" class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-3 text-white mt-1">
                 <option value="Breakfast" ${meal.category === 'Breakfast' ? 'selected' : ''}>Sarapan</option>
                 <option value="Lunch" ${meal.category === 'Lunch' ? 'selected' : ''}>Makan Siang</option>
                 <option value="Dinner" ${meal.category === 'Dinner' ? 'selected' : ''}>Makan Malam</option>
@@ -1547,27 +1551,27 @@
             </div>
             <div>
               <label class="text-[10px] text-neutral-400 font-medium">Kalori (kcal)</label>
-              <input type="number" id="edit-meal-cal" value="${meal.calories}" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
+              <input type="number" id="edit-meal-cal" value="${meal.calories}" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-3 text-white mt-1">
             </div>
           </div>
           <div class="grid grid-cols-3 gap-2">
             <div>
               <label class="text-[10px] text-neutral-400 font-medium">Protein (g)</label>
-              <input type="number" id="edit-meal-p" value="${meal.protein || 0}" class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
+              <input type="number" id="edit-meal-p" value="${meal.protein || 0}" class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-3 text-white mt-1">
             </div>
             <div>
               <label class="text-[10px] text-neutral-400 font-medium">Karbo (g)</label>
-              <input type="number" id="edit-meal-c" value="${meal.carbs || 0}" class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
+              <input type="number" id="edit-meal-c" value="${meal.carbs || 0}" class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-3 text-white mt-1">
             </div>
             <div>
               <label class="text-[10px] text-neutral-400 font-medium">Lemak (g)</label>
-              <input type="number" id="edit-meal-f" value="${meal.fat || 0}" class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
+              <input type="number" id="edit-meal-f" value="${meal.fat || 0}" class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-3 text-white mt-1">
             </div>
           </div>
-          <button type="submit" class="w-full py-2.5 bg-ios-blue text-white font-bold rounded-xl ios-active mt-2">Simpan Perubahan</button>
+          <button type="submit" class="w-full py-3 bg-ios-blue text-white font-bold rounded-xl ios-active mt-2">Simpan Perubahan</button>
         </form>
       `;
-      document.getElementById('edit-modal').classList.remove('hidden');
+      document.getElementById('edit-modal').style.display = 'flex';
     }
 
     function handleSaveEditMeal(e, id) {
@@ -1663,14 +1667,14 @@
     }
 
     function renderFitness(container) {
-      const activeSubView = appState.subViews.fitness || 'running';
-      const runs = (appState.fitness.runs || []).filter(r => r.date === selectedDate);
-      const workouts = (appState.fitness.workouts || []).filter(w => w.date === selectedDate);
+      const activeSubView = (appState.subViews && appState.subViews.fitness) || 'running';
+      const runs = ((appState.fitness && appState.fitness.runs) || []).filter(r => r.date === selectedDate);
+      const workouts = ((appState.fitness && appState.fitness.workouts) || []).filter(w => w.date === selectedDate);
       
       const { tdee } = calculateTDEE();
       
-      const allRuns = appState.fitness.runs || [];
-      const allWorkouts = appState.fitness.workouts || [];
+      const allRuns = (appState.fitness && appState.fitness.runs) || [];
+      const allWorkouts = (appState.fitness && appState.fitness.workouts) || [];
       const totalBurnedAllTime = allRuns.reduce((acc, r) => acc + (r.calories || 0), 0) + allWorkouts.reduce((acc, w) => acc + (w.calories || 0), 0);
 
       const dayMealsAll = (appState.meals || []);
@@ -1690,7 +1694,7 @@
       const isEffective = expectedKgLoss >= actualKgLost;
 
       container.innerHTML = `
-        <div class="bg-ios-card border border-white/10 rounded-2xl p-2 flex items-center justify-between text-xs font-semibold">
+        <div class="bg-ios-card border border-white/10 rounded-2xl p-2.5 flex items-center justify-between text-xs font-semibold">
           <button onclick="shiftSelectedDate(-1)" class="p-2 bg-ios-cardSecondary rounded-xl ios-active text-neutral-300 hover:text-white">
             <i data-lucide="chevron-left" class="w-4 h-4"></i>
           </button>
@@ -1747,7 +1751,7 @@
               <i data-lucide="plus-circle" class="w-4 h-4 text-ios-purple"></i>
               <span>Tambah Sesi Lari (Auto Pace Calculator)</span>
             </h3>
-            <form onsubmit="handleAddRun(event)" class="space-y-2 text-xs">
+            <form onsubmit="handleAddRun(event)" class="space-y-2.5 text-xs">
               <div>
                 <label class="text-[10px] text-neutral-400 font-medium">Tanggal Sesi</label>
                 <input type="date" id="run-date" value="${selectedDate}">
@@ -1755,27 +1759,27 @@
               <div class="grid grid-cols-2 gap-2">
                 <div>
                   <label class="text-[10px] text-neutral-400 font-medium">Jarak (km)</label>
-                  <input type="number" step="0.01" id="run-dist" placeholder="contoh: 5.00" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
+                  <input type="number" step="0.01" id="run-dist" placeholder="contoh: 5.00" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-3 text-white mt-1">
                 </div>
                 <div>
                   <label class="text-[10px] text-neutral-400 font-medium">Durasi (Menit & Detik)</label>
                   <div class="grid grid-cols-2 gap-1 mt-1">
-                    <input type="number" id="run-mins" placeholder="Menit" required class="bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white text-center">
-                    <input type="number" id="run-secs" placeholder="Detik" value="0" class="bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white text-center">
+                    <input type="number" id="run-mins" placeholder="Menit" required class="bg-ios-cardSecondary border border-white/10 rounded-xl p-3 text-white text-center">
+                    <input type="number" id="run-secs" placeholder="Detik" value="0" class="bg-ios-cardSecondary border border-white/10 rounded-xl p-3 text-white text-center">
                   </div>
                 </div>
               </div>
               <div class="grid grid-cols-2 gap-2">
                 <div>
                   <label class="text-[10px] text-neutral-400 font-medium">Avg HR (bpm)</label>
-                  <input type="number" id="run-hr" placeholder="150" class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
+                  <input type="number" id="run-hr" placeholder="150" class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-3 text-white mt-1">
                 </div>
                 <div>
                   <label class="text-[10px] text-neutral-400 font-medium">Kalori Terbakar (kcal)</label>
-                  <input type="number" id="run-cal" placeholder="350" class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
+                  <input type="number" id="run-cal" placeholder="350" class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-3 text-white mt-1">
                 </div>
               </div>
-              <button type="submit" class="w-full py-2.5 bg-ios-purple text-white font-bold rounded-xl ios-active shadow-lg shadow-ios-purple/20">Simpan Sesi Lari & Hitung Pace</button>
+              <button type="submit" class="w-full py-3 bg-ios-purple text-white font-bold rounded-xl ios-active shadow-lg shadow-ios-purple/20">Simpan Sesi Lari & Hitung Pace</button>
             </form>
           </div>
 
@@ -1791,7 +1795,7 @@
                   <span class="text-[10px] text-neutral-500">📅 ${formatDateDisplay(r.date)}</span>
                 </div>
                 <div class="flex items-center space-x-1">
-                  <button onclick="openEditRun('${r.id}')" class="px-2.5 py-1.5 bg-ios-cardSecondary border border-white/10 rounded-xl text-ios-blue font-bold ios-active">Ubah</button>
+                  <button onclick="openEditRun('${r.id}')" class="px-3 py-1.5 bg-ios-cardSecondary border border-white/10 rounded-xl text-ios-blue font-bold ios-active">Ubah</button>
                   <button onclick="deleteRun('${r.id}')" class="text-neutral-400 hover:text-ios-red p-1.5 ios-active" title="Hapus">
                     <i data-lucide="trash-2" class="w-4 h-4"></i>
                   </button>
@@ -1805,19 +1809,19 @@
               <i data-lucide="plus-circle" class="w-4 h-4 text-ios-blue"></i>
               <span>Tambah Sesi Workout / Strength</span>
             </h3>
-            <form onsubmit="handleAddWorkout(event)" class="space-y-2 text-xs">
+            <form onsubmit="handleAddWorkout(event)" class="space-y-2.5 text-xs">
               <div>
                 <label class="text-[10px] text-neutral-400 font-medium">Tanggal Sesi</label>
                 <input type="date" id="workout-date" value="${selectedDate}">
               </div>
               <div>
                 <label class="text-[10px] text-neutral-400 font-medium">Judul / Fokus Latihan</label>
-                <input type="text" id="workout-title" placeholder="contoh: Upper Body Hypertrophy" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
+                <input type="text" id="workout-title" placeholder="contoh: Upper Body Hypertrophy" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-3 text-white mt-1">
               </div>
               <div class="grid grid-cols-3 gap-2">
                 <div>
                   <label class="text-[10px] text-neutral-400 font-medium">Kategori</label>
-                  <select id="workout-category" class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
+                  <select id="workout-category" class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-3 text-white mt-1">
                     <option value="Strength">Strength</option>
                     <option value="Hypertrophy">Hypertrophy</option>
                     <option value="CrossFit">CrossFit</option>
@@ -1827,16 +1831,16 @@
                 <div>
                   <label class="text-[10px] text-neutral-400 font-medium">Durasi (Menit & Detik)</label>
                   <div class="grid grid-cols-2 gap-1 mt-1">
-                    <input type="number" id="wo-mins" placeholder="Menit" required class="bg-ios-cardSecondary border border-white/10 rounded-xl p-2 text-white text-center">
-                    <input type="number" id="wo-secs" placeholder="Detik" value="0" class="bg-ios-cardSecondary border border-white/10 rounded-xl p-2 text-white text-center">
+                    <input type="number" id="wo-mins" placeholder="Menit" required class="bg-ios-cardSecondary border border-white/10 rounded-xl p-3 text-white text-center">
+                    <input type="number" id="wo-secs" placeholder="Detik" value="0" class="bg-ios-cardSecondary border border-white/10 rounded-xl p-3 text-white text-center">
                   </div>
                 </div>
                 <div>
                   <label class="text-[10px] text-neutral-400 font-medium">Kalori</label>
-                  <input type="number" id="workout-cal" placeholder="300" class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
+                  <input type="number" id="workout-cal" placeholder="300" class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-3 text-white mt-1">
                 </div>
               </div>
-              <button type="submit" class="w-full py-2.5 bg-ios-blue text-white font-bold rounded-xl ios-active shadow-lg shadow-ios-blue/20">Simpan Sesi Workout</button>
+              <button type="submit" class="w-full py-3 bg-ios-blue text-white font-bold rounded-xl ios-active shadow-lg shadow-ios-blue/20">Simpan Sesi Workout</button>
             </form>
           </div>
 
@@ -1852,7 +1856,7 @@
                   <span class="text-[10px] text-neutral-500">📅 ${formatDateDisplay(w.date)}</span>
                 </div>
                 <div class="flex items-center space-x-1">
-                  <button onclick="openEditWorkout('${w.id}')" class="px-2.5 py-1.5 bg-ios-cardSecondary border border-white/10 rounded-xl text-ios-blue font-bold ios-active">Ubah</button>
+                  <button onclick="openEditWorkout('${w.id}')" class="px-3 py-1.5 bg-ios-cardSecondary border border-white/10 rounded-xl text-ios-blue font-bold ios-active">Ubah</button>
                   <button onclick="deleteWorkout('${w.id}')" class="text-neutral-400 hover:text-ios-red p-1.5 ios-active" title="Hapus">
                     <i data-lucide="trash-2" class="w-4 h-4"></i>
                   </button>
@@ -1865,6 +1869,7 @@
     }
 
     function switchFitnessSubView(sub) {
+      if (!appState.subViews) appState.subViews = {};
       appState.subViews.fitness = sub;
       saveState();
       renderView();
@@ -1889,7 +1894,9 @@
           paceStr = `${paceMins}:${paceSecs < 10 ? '0' : ''}${paceSecs}`;
         }
 
+        if (!appState.fitness) appState.fitness = { runs: [], workouts: [] };
         if (!appState.fitness.runs) appState.fitness.runs = [];
+
         appState.fitness.runs.push({
           id: Date.now().toString(),
           date,
@@ -1910,7 +1917,7 @@
     }
 
     function openEditRun(id) {
-      const run = (appState.fitness.runs || []).find(r => r.id === id);
+      const run = ((appState.fitness && appState.fitness.runs) || []).find(r => r.id === id);
       if (!run) return;
 
       const totalMins = run.durationMinutes || 30;
@@ -1922,34 +1929,34 @@
         <form onsubmit="handleSaveEditRun(event, '${id}')" class="space-y-3">
           <div>
             <label class="text-[10px] text-neutral-400 font-medium">Jarak (km)</label>
-            <input type="number" step="0.01" id="edit-run-dist" value="${run.distance}" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
+            <input type="number" step="0.01" id="edit-run-dist" value="${run.distance}" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-3 text-white mt-1">
           </div>
           <div>
             <label class="text-[10px] text-neutral-400 font-medium">Durasi (Menit & Detik)</label>
             <div class="grid grid-cols-2 gap-1 mt-1">
-              <input type="number" id="edit-run-mins" value="${mins}" required class="bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white text-center">
-              <input type="number" id="edit-run-secs" value="${secs}" class="bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white text-center">
+              <input type="number" id="edit-run-mins" value="${mins}" required class="bg-ios-cardSecondary border border-white/10 rounded-xl p-3 text-white text-center">
+              <input type="number" id="edit-run-secs" value="${secs}" class="bg-ios-cardSecondary border border-white/10 rounded-xl p-3 text-white text-center">
             </div>
           </div>
           <div class="grid grid-cols-2 gap-2">
             <div>
               <label class="text-[10px] text-neutral-400 font-medium">Avg HR (bpm)</label>
-              <input type="number" id="edit-run-hr" value="${run.heartRate || 150}" class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
+              <input type="number" id="edit-run-hr" value="${run.heartRate || 150}" class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-3 text-white mt-1">
             </div>
             <div>
               <label class="text-[10px] text-neutral-400 font-medium">Kalori (kcal)</label>
-              <input type="number" id="edit-run-cal" value="${run.calories || 300}" class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
+              <input type="number" id="edit-run-cal" value="${run.calories || 300}" class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-3 text-white mt-1">
             </div>
           </div>
-          <button type="submit" class="w-full py-2.5 bg-ios-blue text-white font-bold rounded-xl ios-active mt-2">Simpan Perubahan</button>
+          <button type="submit" class="w-full py-3 bg-ios-blue text-white font-bold rounded-xl ios-active mt-2">Simpan Perubahan</button>
         </form>
       `;
-      document.getElementById('edit-modal').classList.remove('hidden');
+      document.getElementById('edit-modal').style.display = 'flex';
     }
 
     function handleSaveEditRun(e, id) {
       e.preventDefault();
-      const run = (appState.fitness.runs || []).find(r => r.id === id);
+      const run = ((appState.fitness && appState.fitness.runs) || []).find(r => r.id === id);
       if (run) {
         run.distance = parseFloat(document.getElementById('edit-run-dist').value) || 0;
         const mins = parseInt(document.getElementById('edit-run-mins').value) || 0;
@@ -1975,9 +1982,11 @@
     }
 
     function deleteRun(id) {
-      appState.fitness.runs = (appState.fitness.runs || []).filter(r => r.id !== id);
-      saveState();
-      renderView();
+      if (appState.fitness && appState.fitness.runs) {
+        appState.fitness.runs = appState.fitness.runs.filter(r => r.id !== id);
+        saveState();
+        renderView();
+      }
     }
 
     function handleAddWorkout(e) {
@@ -1992,7 +2001,9 @@
 
         const totalMinutes = mins + (secs / 60);
 
+        if (!appState.fitness) appState.fitness = { runs: [], workouts: [] };
         if (!appState.fitness.workouts) appState.fitness.workouts = [];
+
         appState.fitness.workouts.push({
           id: Date.now().toString(),
           date,
@@ -2011,7 +2022,7 @@
     }
 
     function openEditWorkout(id) {
-      const workout = (appState.fitness.workouts || []).find(w => w.id === id);
+      const workout = ((appState.fitness && appState.fitness.workouts) || []).find(w => w.id === id);
       if (!workout) return;
 
       const totalMins = workout.durationMinutes || 45;
@@ -2023,11 +2034,11 @@
         <form onsubmit="handleSaveEditWorkout(event, '${id}')" class="space-y-3">
           <div>
             <label class="text-[10px] text-neutral-400 font-medium">Judul / Fokus Latihan</label>
-            <input type="text" id="edit-wo-title" value="${workout.title}" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
+            <input type="text" id="edit-wo-title" value="${workout.title}" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-3 text-white mt-1">
           </div>
           <div>
             <label class="text-[10px] text-neutral-400 font-medium">Kategori</label>
-            <select id="edit-wo-cat" class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
+            <select id="edit-wo-cat" class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-3 text-white mt-1">
               <option value="Strength" ${workout.category === 'Strength' ? 'selected' : ''}>Strength</option>
               <option value="Hypertrophy" ${workout.category === 'Hypertrophy' ? 'selected' : ''}>Hypertrophy</option>
               <option value="CrossFit" ${workout.category === 'CrossFit' ? 'selected' : ''}>CrossFit</option>
@@ -2037,23 +2048,23 @@
           <div>
             <label class="text-[10px] text-neutral-400 font-medium">Durasi (Menit & Detik)</label>
             <div class="grid grid-cols-2 gap-1 mt-1">
-              <input type="number" id="edit-wo-mins" value="${mins}" required class="bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white text-center">
-              <input type="number" id="edit-wo-secs" value="${secs}" class="bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white text-center">
+              <input type="number" id="edit-wo-mins" value="${mins}" required class="bg-ios-cardSecondary border border-white/10 rounded-xl p-3 text-white text-center">
+              <input type="number" id="edit-wo-secs" value="${secs}" class="bg-ios-cardSecondary border border-white/10 rounded-xl p-3 text-white text-center">
             </div>
           </div>
           <div>
             <label class="text-[10px] text-neutral-400 font-medium">Kalori (kcal)</label>
-            <input type="number" id="edit-wo-cal" value="${workout.calories || 0}" class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
+            <input type="number" id="edit-wo-cal" value="${workout.calories || 0}" class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-3 text-white mt-1">
           </div>
-          <button type="submit" class="w-full py-2.5 bg-ios-blue text-white font-bold rounded-xl ios-active mt-2">Simpan Perubahan</button>
+          <button type="submit" class="w-full py-3 bg-ios-blue text-white font-bold rounded-xl ios-active mt-2">Simpan Perubahan</button>
         </form>
       `;
-      document.getElementById('edit-modal').classList.remove('hidden');
+      document.getElementById('edit-modal').style.display = 'flex';
     }
 
     function handleSaveEditWorkout(e, id) {
       e.preventDefault();
-      const workout = (appState.fitness.workouts || []).find(w => w.id === id);
+      const workout = ((appState.fitness && appState.fitness.workouts) || []).find(w => w.id === id);
       if (workout) {
         workout.title = document.getElementById('edit-wo-title').value;
         workout.category = document.getElementById('edit-wo-cat').value;
@@ -2072,9 +2083,11 @@
     }
 
     function deleteWorkout(id) {
-      appState.fitness.workouts = (appState.fitness.workouts || []).filter(w => w.id !== id);
-      saveState();
-      renderView();
+      if (appState.fitness && appState.fitness.workouts) {
+        appState.fitness.workouts = appState.fitness.workouts.filter(w => w.id !== id);
+        saveState();
+        renderView();
+      }
     }
 
     window.onload = function() {
