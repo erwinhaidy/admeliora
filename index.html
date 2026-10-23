@@ -93,27 +93,27 @@
       padding-top: env(safe-area-inset-top, 12px);
     }
 
-    /* Compact iOS Date Input Styling */
+    /* Compact iPhone Date Input Styling */
     input[type="date"] {
       appearance: none;
       -webkit-appearance: none;
-      background-color: rgba(44, 44, 46, 0.8);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
-      padding: 5px 8px;
+      background-color: rgba(44, 44, 46, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 10px;
+      padding: 4px 6px;
       color: #ffffff;
-      font-size: 12px;
+      font-size: 11px;
       font-family: inherit;
       text-align: center;
-      width: 135px;
+      width: 125px;
       box-sizing: border-box;
     }
     input[type="date"]::-webkit-calendar-picker-indicator {
       filter: invert(1);
       cursor: pointer;
       opacity: 0.7;
-      width: 14px;
-      height: 14px;
+      width: 13px;
+      height: 13px;
     }
   </style>
 </head>
@@ -512,7 +512,7 @@
       try {
         const todayStr = getTodayString();
         
-        function getStreakForDates(dateSet, validatorFn) {
+        function getStreakForDates(validatorFn) {
           let streak = 0;
           let curr = new Date(todayStr + 'T00:00:00');
           let currStr = getWibDateString(curr);
@@ -531,13 +531,13 @@
         }
 
         const mealDates = new Set((appState.meals || []).map(m => m.date));
-        const mealStreak = getStreakForDates(mealDates, (dStr) => mealDates.has(dStr));
+        const mealStreak = getStreakForDates((dStr) => mealDates.has(dStr));
 
         const waterGoalFn = (dStr) => getWaterForDate(dStr) >= getDynamicWaterGoal(dStr);
-        const waterStreak = getStreakForDates(null, waterGoalFn);
+        const waterStreak = getStreakForDates(waterGoalFn);
 
         const weightDates = new Set((appState.weightLogs || []).map(w => w.date));
-        const weightStreak = getStreakForDates(weightDates, (dStr) => weightDates.has(dStr));
+        const weightStreak = getStreakForDates((dStr) => weightDates.has(dStr));
 
         return { mealStreak, waterStreak, weightStreak };
       } catch (e) {
@@ -723,11 +723,13 @@
       const targetEl = document.getElementById('app-content');
       if (!targetEl) return;
       try {
+        // Temporarily adjust styling for clean screenshot export on mobile
         const canvas = await html2canvas(targetEl, {
           backgroundColor: '#000000',
           scale: 2,
           useCORS: true,
-          logging: false
+          logging: false,
+          allowTaint: true
         });
         
         const imageURI = canvas.toDataURL('image/png');
@@ -736,8 +738,10 @@
         link.href = imageURI;
         document.body.appendChild(link);
         link.click();
-        link.remove();
-      } catch (e) {}
+        setTimeout(() => link.remove(), 100);
+      } catch (e) {
+        console.error("Export Image Error:", e);
+      }
     }
 
     async function exportSummaryAsPDF() {
@@ -749,7 +753,8 @@
           backgroundColor: '#000000',
           scale: 2,
           useCORS: true,
-          logging: false
+          logging: false,
+          allowTaint: true
         });
 
         const imgData = canvas.toDataURL('image/png');
@@ -761,7 +766,9 @@
 
         pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
         pdf.save(`ad_meliora_report_${getTodayString()}.pdf`);
-      } catch (e) {}
+      } catch (e) {
+        console.error("Export PDF Error:", e);
+      }
     }
 
     let currentTab = 'dashboard';
@@ -1444,8 +1451,10 @@
                 fat: parseInt(parsed.fat) || 15
               };
 
-              document.getElementById('scan-detected-info').innerText = `${tempScannedMeal.name} (${tempScannedMeal.calories} kcal)`;
-              document.getElementById('scan-detected-macros').innerText = `Protein: ${tempScannedMeal.protein}g | Karbo: ${tempScannedMeal.carbs}g | Lemak: ${tempScannedMeal.fat}g`;
+              const infoEl = document.getElementById('scan-detected-info');
+              const macrosEl = document.getElementById('scan-detected-macros');
+              if (infoEl) infoEl.innerText = `${tempScannedMeal.name} (${tempScannedMeal.calories} kcal)`;
+              if (macrosEl) macrosEl.innerText = `Protein: ${tempScannedMeal.protein}g | Karbo: ${tempScannedMeal.carbs}g | Lemak: ${tempScannedMeal.fat}g`;
               
               const scanModal = document.getElementById('scan-modal');
               if (scanModal) {
@@ -1454,7 +1463,7 @@
             }
           } catch (parseErr) {
             console.error("AI Parse Error:", parseErr);
-            alert("Gagal memproses gambar dengan AI. Silakan coba foto lain atau catat manual.");
+            alert("Gagal memproses gambar dengan AI. Silakan catat secara manual.");
           } finally {
             if (loadingEl) loadingEl.classList.add('hidden');
             event.target.value = '';
