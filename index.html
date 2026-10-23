@@ -211,6 +211,21 @@
     </div>
   </div>
 
+  <!-- Edit Item Modal -->
+  <div id="edit-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 transition-opacity">
+    <div class="bg-ios-card border border-white/10 w-full max-w-sm rounded-[32px] p-6 space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center border-b border-white/10 pb-3">
+        <h3 id="edit-modal-title" class="text-lg font-bold text-white">Ubah Data</h3>
+        <button onclick="closeEditModal()" class="w-8 h-8 rounded-full bg-ios-cardSecondary flex items-center justify-center text-neutral-400 hover:text-white">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+      <div id="edit-modal-body" class="space-y-3 text-xs">
+        <!-- Dynamically injected edit form -->
+      </div>
+    </div>
+  </div>
+
   <!-- Profile & Metrics Modal -->
   <div id="profile-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-end sm:items-center justify-center p-0 sm:p-4 transition-opacity">
     <div class="bg-ios-card border border-white/10 w-full max-w-md rounded-t-[32px] sm:rounded-[32px] p-6 space-y-4 max-h-[90vh] overflow-y-auto no-scrollbar">
@@ -480,14 +495,8 @@
         let workoutExtra = 0;
         const runs = (appState.fitness.runs || []).filter(r => r.date === dateStr);
         runs.forEach(r => {
-          if (r.duration) {
-            const parts = r.duration.split(':');
-            if (parts.length === 2) {
-              const mins = (parseInt(parts[0]) || 0) + ((parseInt(parts[1]) || 0) / 60);
-              workoutExtra += mins * 12;
-            } else if (!isNaN(r.duration)) {
-              workoutExtra += parseFloat(r.duration) * 12;
-            }
+          if (r.durationMinutes) {
+            workoutExtra += (r.durationMinutes || 0) * 12;
           }
         });
 
@@ -1079,6 +1088,21 @@
           </form>
         </div>
 
+        <div class="space-y-2">
+          <h4 class="text-xs font-bold text-neutral-400 uppercase tracking-wider">Riwayat Pengukuran</h4>
+          ${logs.length === 0 ? '<div class="text-xs text-neutral-500 italic p-2">Belum ada riwayat pengukuran.</div>' : logs.map(l => `
+            <div class="bg-ios-card border border-white/10 rounded-2xl p-3.5 flex justify-between items-center text-xs">
+              <div>
+                <p class="font-bold text-white">${l.weight.toFixed(2)} kg • Pinggang: ${l.waist ? l.waist.toFixed(2) : '-'} cm</p>
+                <span class="text-[10px] text-neutral-400">📅 ${formatDateDisplay(l.date)}</span>
+              </div>
+              <button onclick="openEditWeightLog('${l.date}')" class="px-3 py-1.5 bg-ios-cardSecondary border border-white/10 rounded-xl text-ios-blue font-bold ios-active">
+                Ubah
+              </button>
+            </div>
+          `).join('')}
+        </div>
+
         <div class="bg-ios-card border border-white/10 rounded-[24px] p-4 space-y-3">
           <div class="flex justify-between items-center">
             <div>
@@ -1160,6 +1184,44 @@
         saveState();
         renderView();
       } catch (err) {}
+    }
+
+    function openEditWeightLog(dateStr) {
+      const log = (appState.weightLogs || []).find(l => l.date === dateStr);
+      if (!log) return;
+
+      document.getElementById('edit-modal-title').innerText = 'Ubah Pengukuran';
+      document.getElementById('edit-modal-body').innerHTML = `
+        <form onsubmit="handleSaveEditWeightLog(event, '${dateStr}')" class="space-y-3">
+          <div>
+            <label class="text-[10px] text-neutral-400 font-medium">Berat Badan (kg)</label>
+            <input type="number" step="0.01" id="edit-weight" value="${log.weight.toFixed(2)}" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
+          </div>
+          <div>
+            <label class="text-[10px] text-neutral-400 font-medium">Lingkar Pinggang (cm)</label>
+            <input type="number" step="0.01" id="edit-waist" value="${log.waist ? log.waist.toFixed(2) : '88.00'}" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
+          </div>
+          <button type="submit" class="w-full py-2.5 bg-ios-blue text-white font-bold rounded-xl ios-active">Simpan Perubahan</button>
+        </form>
+      `;
+      document.getElementById('edit-modal').classList.remove('hidden');
+    }
+
+    function handleSaveEditWeightLog(e, dateStr) {
+      e.preventDefault();
+      const weight = parseFloat(document.getElementById('edit-weight').value) || 0;
+      const waist = parseFloat(document.getElementById('edit-waist').value) || 0;
+
+      const log = (appState.weightLogs || []).find(l => l.date === dateStr);
+      if (log) {
+        log.weight = weight;
+        log.waist = waist;
+        appState.profile.weight = weight;
+        appState.profile.currentWaist = waist;
+        saveState();
+      }
+      closeEditModal();
+      renderView();
     }
 
     function toggleMilestone(id) {
@@ -1313,9 +1375,12 @@
                       </div>
                       <p class="text-xs text-neutral-400 mt-0.5">${m.calories} kcal • P: ${m.protein || 0}g | C: ${m.carbs || 0}g | F: ${m.fat || 0}g</p>
                     </div>
-                    <button onclick="deleteMeal('${m.id}')" class="text-neutral-400 hover:text-ios-red p-1.5 ios-active" title="Hapus Makanan">
-                      <i data-lucide="trash-2" class="w-4 h-4"></i>
-                    </button>
+                    <div class="flex items-center space-x-1">
+                      <button onclick="openEditMeal('${m.id}')" class="px-2.5 py-1.5 bg-ios-cardSecondary border border-white/10 rounded-xl text-ios-blue text-xs font-bold ios-active" title="Ubah">Ubah</button>
+                      <button onclick="deleteMeal('${m.id}')" class="text-neutral-400 hover:text-ios-red p-1.5 ios-active" title="Hapus">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                      </button>
+                    </div>
                   </div>
                 `).join('')}
               </div>
@@ -1391,13 +1456,17 @@
         console.error("AI Scan Error:", err);
       } finally {
         if (loadingEl) loadingEl.classList.add('hidden');
-        event.target.value = ''; // reset file input
+        event.target.value = '';
       }
     }
 
     function closeScanModal() {
       tempScannedMeal = null;
       document.getElementById('scan-modal').classList.add('hidden');
+    }
+
+    function closeEditModal() {
+      document.getElementById('edit-modal').classList.add('hidden');
     }
 
     function confirmScannedMeal() {
@@ -1437,6 +1506,68 @@
         saveState();
         renderView();
       } catch (err) {}
+    }
+
+    function openEditMeal(id) {
+      const meal = (appState.meals || []).find(m => m.id === id);
+      if (!meal) return;
+
+      document.getElementById('edit-modal-title').innerText = 'Ubah Catatan Makanan';
+      document.getElementById('edit-modal-body').innerHTML = `
+        <form onsubmit="handleSaveEditMeal(event, '${id}')" class="space-y-3">
+          <div>
+            <label class="text-[10px] text-neutral-400 font-medium">Nama Makanan</label>
+            <input type="text" id="edit-meal-name" value="${meal.name}" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-[10px] text-neutral-400 font-medium">Kategori</label>
+              <select id="edit-meal-cat" class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
+                <option value="Breakfast" ${meal.category === 'Breakfast' ? 'selected' : ''}>Sarapan</option>
+                <option value="Lunch" ${meal.category === 'Lunch' ? 'selected' : ''}>Makan Siang</option>
+                <option value="Dinner" ${meal.category === 'Dinner' ? 'selected' : ''}>Makan Malam</option>
+                <option value="Snack" ${meal.category === 'Snack' ? 'selected' : ''}>Cemilan</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-[10px] text-neutral-400 font-medium">Kalori (kcal)</label>
+              <input type="number" id="edit-meal-cal" value="${meal.calories}" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
+            </div>
+          </div>
+          <div class="grid grid-cols-3 gap-2">
+            <div>
+              <label class="text-[10px] text-neutral-400 font-medium">Protein (g)</label>
+              <input type="number" id="edit-meal-p" value="${meal.protein || 0}" class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
+            </div>
+            <div>
+              <label class="text-[10px] text-neutral-400 font-medium">Karbo (g)</label>
+              <input type="number" id="edit-meal-c" value="${meal.carbs || 0}" class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
+            </div>
+            <div>
+              <label class="text-[10px] text-neutral-400 font-medium">Lemak (g)</label>
+              <input type="number" id="edit-meal-f" value="${meal.fat || 0}" class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
+            </div>
+          </div>
+          <button type="submit" class="w-full py-2.5 bg-ios-blue text-white font-bold rounded-xl ios-active mt-2">Simpan Perubahan</button>
+        </form>
+      `;
+      document.getElementById('edit-modal').classList.remove('hidden');
+    }
+
+    function handleSaveEditMeal(e, id) {
+      e.preventDefault();
+      const meal = (appState.meals || []).find(m => m.id === id);
+      if (meal) {
+        meal.name = document.getElementById('edit-meal-name').value;
+        meal.category = document.getElementById('edit-meal-cat').value;
+        meal.calories = parseInt(document.getElementById('edit-meal-cal').value) || 0;
+        meal.protein = parseInt(document.getElementById('edit-meal-p').value) || 0;
+        meal.carbs = parseInt(document.getElementById('edit-meal-c').value) || 0;
+        meal.fat = parseInt(document.getElementById('edit-meal-f').value) || 0;
+        saveState();
+      }
+      closeEditModal();
+      renderView();
     }
 
     function deleteMeal(id) {
@@ -1520,7 +1651,7 @@
       const runs = (appState.fitness.runs || []).filter(r => r.date === selectedDate);
       const workouts = (appState.fitness.workouts || []).filter(w => w.date === selectedDate);
       
-      const { tdee, targetCalories } = calculateTDEE();
+      const { tdee } = calculateTDEE();
       
       const allRuns = appState.fitness.runs || [];
       const allWorkouts = appState.fitness.workouts || [];
@@ -1611,8 +1742,11 @@
                   <input type="number" step="0.01" id="run-dist" placeholder="contoh: 5.00" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
                 </div>
                 <div>
-                  <label class="text-[10px] text-neutral-400 font-medium">Durasi Total (menit)</label>
-                  <input type="number" id="run-mins" placeholder="contoh: 28" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
+                  <label class="text-[10px] text-neutral-400 font-medium">Durasi (Menit & Detik)</label>
+                  <div class="grid grid-cols-2 gap-1 mt-1">
+                    <input type="number" id="run-mins" placeholder="Menit" required class="bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white text-center">
+                    <input type="number" id="run-secs" placeholder="Detik" value="0" class="bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white text-center">
+                  </div>
                 </div>
               </div>
               <div class="grid grid-cols-2 gap-2">
@@ -1634,15 +1768,18 @@
             ${runs.length === 0 ? `
               <div class="bg-ios-card border border-white/10 rounded-2xl p-4 text-center text-xs text-neutral-500 italic">Belum ada sesi lari dicatat untuk tanggal ini.</div>
             ` : runs.map(r => `
-              <div class="bg-ios-card border border-white/10 rounded-2xl p-4 flex justify-between items-center">
+              <div class="bg-ios-card border border-white/10 rounded-2xl p-4 flex justify-between items-center text-xs">
                 <div>
-                  <p class="text-base font-extrabold text-white">${r.distance} km <span class="text-xs font-normal text-neutral-400">(${r.duration})</span></p>
-                  <p class="text-xs text-neutral-400 mt-0.5">Pace: <span class="text-ios-cyan font-bold">${r.pace || '-'} min/km</span> • HR: ${r.heartRate || '-'} bpm • ${r.calories || 0} kcal</p>
+                  <p class="text-base font-extrabold text-white">${r.distance} km <span class="text-xs font-normal text-neutral-400">(${r.durationFormatted || r.duration})</span></p>
+                  <p class="text-neutral-400 mt-0.5">Pace: <span class="text-ios-cyan font-bold">${r.pace || '-'} min/km</span> • HR: ${r.heartRate || '-'} bpm • ${r.calories || 0} kcal</p>
                   <span class="text-[10px] text-neutral-500">📅 ${formatDateDisplay(r.date)}</span>
                 </div>
-                <button onclick="deleteRun('${r.id}')" class="text-neutral-400 hover:text-ios-red p-1.5 ios-active" title="Hapus">
-                  <i data-lucide="trash-2" class="w-4 h-4"></i>
-                </button>
+                <div class="flex items-center space-x-1">
+                  <button onclick="openEditRun('${r.id}')" class="px-2.5 py-1.5 bg-ios-cardSecondary border border-white/10 rounded-xl text-ios-blue font-bold ios-active">Ubah</button>
+                  <button onclick="deleteRun('${r.id}')" class="text-neutral-400 hover:text-ios-red p-1.5 ios-active" title="Hapus">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                  </button>
+                </div>
               </div>
             `).join('')}
           </div>
@@ -1672,8 +1809,8 @@
                   </select>
                 </div>
                 <div>
-                  <label class="text-[10px] text-neutral-400 font-medium">Durasi</label>
-                  <input type="text" id="workout-duration" placeholder="45 mins" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
+                  <label class="text-[10px] text-neutral-400 font-medium">Durasi (Menit)</label>
+                  <input type="number" id="workout-mins" placeholder="45" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
                 </div>
                 <div>
                   <label class="text-[10px] text-neutral-400 font-medium">Kalori</label>
@@ -1689,15 +1826,18 @@
             ${workouts.length === 0 ? `
               <div class="bg-ios-card border border-white/10 rounded-2xl p-4 text-center text-xs text-neutral-500 italic">Belum ada sesi workout dicatat untuk tanggal ini.</div>
             ` : workouts.map(w => `
-              <div class="bg-ios-card border border-white/10 rounded-2xl p-4 flex justify-between items-center">
+              <div class="bg-ios-card border border-white/10 rounded-2xl p-4 flex justify-between items-center text-xs">
                 <div>
                   <p class="text-base font-extrabold text-white">${w.title} <span class="text-xs font-normal text-ios-cyan">(${w.category})</span></p>
-                  <p class="text-xs text-neutral-400 mt-0.5">Durasi: ${w.duration} • ${w.calories || 0} kcal</p>
+                  <p class="text-neutral-400 mt-0.5">Durasi: ${w.duration} • ${w.calories || 0} kcal</p>
                   <span class="text-[10px] text-neutral-500">📅 ${formatDateDisplay(w.date)}</span>
                 </div>
-                <button onclick="deleteWorkout('${w.id}')" class="text-neutral-400 hover:text-ios-red p-1.5 ios-active" title="Hapus">
-                  <i data-lucide="trash-2" class="w-4 h-4"></i>
-                </button>
+                <div class="flex items-center space-x-1">
+                  <button onclick="openEditWorkout('${w.id}')" class="px-2.5 py-1.5 bg-ios-cardSecondary border border-white/10 rounded-xl text-ios-blue font-bold ios-active">Ubah</button>
+                  <button onclick="deleteWorkout('${w.id}')" class="text-neutral-400 hover:text-ios-red p-1.5 ios-active" title="Hapus">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                  </button>
+                </div>
               </div>
             `).join('')}
           </div>
@@ -1717,12 +1857,14 @@
         const date = document.getElementById('run-date').value || selectedDate;
         const dist = parseFloat(document.getElementById('run-dist').value) || 0;
         const mins = parseInt(document.getElementById('run-mins').value) || 0;
+        const secs = parseInt(document.getElementById('run-secs').value) || 0;
         const hr = parseInt(document.getElementById('run-hr').value) || 0;
         const cal = parseInt(document.getElementById('run-cal').value) || 0;
 
+        const totalMinutes = mins + (secs / 60);
         let paceStr = '-';
-        if (dist > 0 && mins > 0) {
-          const totalSecs = (mins * 60) / dist;
+        if (dist > 0 && totalMinutes > 0) {
+          const totalSecs = (totalMinutes * 60) / dist;
           const paceMins = Math.floor(totalSecs / 60);
           const paceSecs = Math.round(totalSecs % 60);
           paceStr = `${paceMins}:${paceSecs < 10 ? '0' : ''}${paceSecs}`;
@@ -1733,6 +1875,8 @@
           id: Date.now().toString(),
           date,
           distance: dist,
+          durationMinutes: totalMinutes,
+          durationFormatted: `${mins}m ${secs}s`,
           duration: `${mins} mins`,
           pace: paceStr,
           heartRate: hr,
@@ -1744,6 +1888,61 @@
         saveState();
         renderView();
       } catch (err) {}
+    }
+
+    function openEditRun(id) {
+      const run = (appState.fitness.runs || []).find(r => r.id === id);
+      if (!run) return;
+
+      document.getElementById('edit-modal-title').innerText = 'Ubah Sesi Lari';
+      document.getElementById('edit-modal-body').innerHTML = `
+        <form onsubmit="handleSaveEditRun(event, '${id}')" class="space-y-3">
+          <div>
+            <label class="text-[10px] text-neutral-400 font-medium">Jarak (km)</label>
+            <input type="number" step="0.01" id="edit-run-dist" value="${run.distance}" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
+          </div>
+          <div>
+            <label class="text-[10px] text-neutral-400 font-medium">Durasi (Menit)</label>
+            <input type="number" id="edit-run-mins" value="${Math.round(run.durationMinutes || 30)}" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-[10px] text-neutral-400 font-medium">Avg HR (bpm)</label>
+              <input type="number" id="edit-run-hr" value="${run.heartRate || 150}" class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
+            </div>
+            <div>
+              <label class="text-[10px] text-neutral-400 font-medium">Kalori (kcal)</label>
+              <input type="number" id="edit-run-cal" value="${run.calories || 300}" class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
+            </div>
+          </div>
+          <button type="submit" class="w-full py-2.5 bg-ios-blue text-white font-bold rounded-xl ios-active mt-2">Simpan Perubahan</button>
+        </form>
+      `;
+      document.getElementById('edit-modal').classList.remove('hidden');
+    }
+
+    function handleSaveEditRun(e, id) {
+      e.preventDefault();
+      const run = (appState.fitness.runs || []).find(r => r.id === id);
+      if (run) {
+        run.distance = parseFloat(document.getElementById('edit-run-dist').value) || 0;
+        const mins = parseInt(document.getElementById('edit-run-mins').value) || 0;
+        run.durationMinutes = mins;
+        run.durationFormatted = `${mins} mins`;
+        run.duration = `${mins} mins`;
+        run.heartRate = parseInt(document.getElementById('edit-run-hr').value) || 0;
+        run.calories = parseInt(document.getElementById('edit-run-cal').value) || 0;
+
+        if (run.distance > 0 && mins > 0) {
+          const totalSecs = (mins * 60) / run.distance;
+          const paceMins = Math.floor(totalSecs / 60);
+          const paceSecs = Math.round(totalSecs % 60);
+          run.pace = `${paceMins}:${paceSecs < 10 ? '0' : ''}${paceSecs}`;
+        }
+        saveState();
+      }
+      closeEditModal();
+      renderView();
     }
 
     function deleteRun(id) {
@@ -1758,7 +1957,7 @@
         const date = document.getElementById('workout-date').value || selectedDate;
         const title = document.getElementById('workout-title').value;
         const category = document.getElementById('workout-category').value;
-        const duration = document.getElementById('workout-duration').value;
+        const mins = document.getElementById('workout-mins').value;
         const calories = parseInt(document.getElementById('workout-cal').value) || 0;
 
         if (!appState.fitness.workouts) appState.fitness.workouts = [];
@@ -1767,7 +1966,7 @@
           date,
           title,
           category,
-          duration,
+          duration: `${mins} mins`,
           calories
         });
 
@@ -1775,6 +1974,56 @@
         saveState();
         renderView();
       } catch (err) {}
+    }
+
+    function openEditWorkout(id) {
+      const workout = (appState.fitness.workouts || []).find(w => w.id === id);
+      if (!workout) return;
+
+      document.getElementById('edit-modal-title').innerText = 'Ubah Sesi Workout';
+      document.getElementById('edit-modal-body').innerHTML = `
+        <form onsubmit="handleSaveEditWorkout(event, '${id}')" class="space-y-3">
+          <div>
+            <label class="text-[10px] text-neutral-400 font-medium">Judul / Fokus Latihan</label>
+            <input type="text" id="edit-wo-title" value="${workout.title}" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-[10px] text-neutral-400 font-medium">Kategori</label>
+              <select id="edit-wo-cat" class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
+                <option value="Strength" ${workout.category === 'Strength' ? 'selected' : ''}>Strength</option>
+                <option value="Hypertrophy" ${workout.category === 'Hypertrophy' ? 'selected' : ''}>Hypertrophy</option>
+                <option value="CrossFit" ${workout.category === 'CrossFit' ? 'selected' : ''}>CrossFit</option>
+                <option value="Yoga/Mobility" ${workout.category === 'Yoga/Mobility' ? 'selected' : ''}>Yoga / Mobility</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-[10px] text-neutral-400 font-medium">Durasi</label>
+              <input type="text" id="edit-wo-dur" value="${workout.duration}" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
+            </div>
+          </div>
+          <div>
+            <label class="text-[10px] text-neutral-400 font-medium">Kalori (kcal)</label>
+            <input type="number" id="edit-wo-cal" value="${workout.calories || 0}" class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
+          </div>
+          <button type="submit" class="w-full py-2.5 bg-ios-blue text-white font-bold rounded-xl ios-active mt-2">Simpan Perubahan</button>
+        </form>
+      `;
+      document.getElementById('edit-modal').classList.remove('hidden');
+    }
+
+    function handleSaveEditWorkout(e, id) {
+      e.preventDefault();
+      const workout = (appState.fitness.workouts || []).find(w => w.id === id);
+      if (workout) {
+        workout.title = document.getElementById('edit-wo-title').value;
+        workout.category = document.getElementById('edit-wo-cat').value;
+        workout.duration = document.getElementById('edit-wo-dur').value;
+        workout.calories = parseInt(document.getElementById('edit-wo-cal').value) || 0;
+        saveState();
+      }
+      closeEditModal();
+      renderView();
     }
 
     function deleteWorkout(id) {
