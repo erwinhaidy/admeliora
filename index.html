@@ -109,7 +109,7 @@
         <button onclick="openDriveSyncModal()" class="w-10 h-10 rounded-full bg-ios-cardSecondary border border-white/10 flex items-center justify-center ios-active shadow-sm text-ios-cyan" title="Backup & Export">
           <i data-lucide="share-2" class="w-5 h-5"></i>
         </button>
-        <button onclick="openProfileModal()" class="w-10 h-10 rounded-full bg-ios-cardSecondary border border-white/10 flex items-center justify-center ios-active shadow-sm text-ios-blue">
+        <button onclick="openProfileModal()" class="w-10 h-10 rounded-full bg-ios-cardSecondary border border-white/10 flex items-center justify-center ios-active shadow-sm text-ios-blue" title="Profile Setup">
           <i data-lucide="user" class="w-5 h-5"></i>
         </button>
       </div>
@@ -183,7 +183,7 @@
           </div>
           <div>
             <label class="text-xs text-neutral-400 font-medium">Weight (kg)</label>
-            <input type="number" id="user-weight" step="0.1" class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl px-3 py-2 text-white mt-1">
+            <input type="number" id="user-weight" step="0.01" class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl px-3 py-2 text-white mt-1">
           </div>
         </div>
 
@@ -200,7 +200,7 @@
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="text-xs text-neutral-400 font-medium">Target Weight (kg)</label>
-            <input type="number" id="user-target-weight" step="0.1" class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl px-3 py-2 text-white mt-1">
+            <input type="number" id="user-target-weight" step="0.01" class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl px-3 py-2 text-white mt-1">
           </div>
           <div>
             <label class="text-xs text-neutral-400 font-medium">Daily Deficit (kcal)</label>
@@ -290,12 +290,12 @@
         age: 26,
         gender: 'male',
         height: 175,
-        weight: 78.5,
-        targetWeight: 72.0,
+        weight: 78.50,
+        targetWeight: 72.00,
         deficit: 500,
         activity: 1.375,
-        targetWaist: 80,
-        currentWaist: 88,
+        targetWaist: 80.00,
+        currentWaist: 88.00,
         waterTargetMode: 'dynamic'
       },
       waterLogs: {},
@@ -306,15 +306,15 @@
         workouts: []
       },
       milestones: [
-        { id: 'm1', title: 'Break Below 75kg', targetValue: 75.0, type: 'weight', completed: true },
-        { id: 'm2', title: 'Reach 85cm Waist', targetValue: 85, type: 'waist', completed: false },
-        { id: 'm3', title: 'Ultimate Goal: 72kg Abs', targetValue: 72.0, type: 'weight', completed: false }
+        { id: 'm1', title: 'Break Below 75kg', targetValue: 75.00, type: 'weight', completed: true },
+        { id: 'm2', title: 'Reach 85cm Waist', targetValue: 85.00, type: 'waist', completed: false },
+        { id: 'm3', title: 'Ultimate Goal: 72kg Abs', targetValue: 72.00, type: 'weight', completed: false }
       ],
       weightLogs: [
-        { date: '2026-10-01', weight: 81.0, waist: 91 },
-        { date: '2026-10-08', weight: 79.8, waist: 89.5 },
-        { date: '2026-10-15', weight: 78.8, waist: 88.5 },
-        { date: '2026-10-19', weight: 78.5, waist: 88 }
+        { date: '2026-10-01', weight: 81.00, waist: 91.00 },
+        { date: '2026-10-08', weight: 79.80, waist: 89.50 },
+        { date: '2026-10-15', weight: 78.80, waist: 88.50 },
+        { date: '2026-10-19', weight: 78.50, waist: 88.00 }
       ],
       subViews: {
         progress: 'weight',
@@ -388,7 +388,7 @@
     function calculateTDEE() {
       try {
         const p = appState.profile || DEFAULT_STATE.profile;
-        const weight = p.weight || 70;
+        const weight = p.weight || 70.00;
         const height = p.height || 170;
         const age = p.age || 25;
         const gender = p.gender || 'male';
@@ -415,7 +415,7 @@
           return appState.water.goal;
         }
 
-        const baseHydration = (appState.profile.weight || 70) * 35;
+        const baseHydration = (appState.profile.weight || 70.00) * 35;
         let workoutExtra = 0;
         const runs = (appState.fitness.runs || []).filter(r => r.date === dateStr);
         runs.forEach(r => {
@@ -521,27 +521,27 @@
         const logs = appState.weightLogs || [];
         if (logs.length === 0) {
           return {
-            change7d: '0.0',
-            avg7d: (appState.profile.weight || 70).toFixed(1),
+            change7d: '0.00',
+            avg7d: (appState.profile.weight || 70.00).toFixed(2),
             sparklineLabels: ['Today'],
-            sparklineData: [appState.profile.weight || 70]
+            sparklineData: [appState.profile.weight || 70.00]
           };
         }
 
         const recentLogs = logs.slice(-7);
         const latestWeight = recentLogs[recentLogs.length - 1].weight;
         const start7dWeight = recentLogs[0].weight;
-        const change7d = (latestWeight - start7dWeight).toFixed(1);
+        const change7d = (latestWeight - start7dWeight).toFixed(2);
 
         const sum = recentLogs.reduce((acc, curr) => acc + (curr.weight || 0), 0);
-        const avg7d = (sum / recentLogs.length).toFixed(1);
+        const avg7d = (sum / recentLogs.length).toFixed(2);
 
         const sparklineLabels = recentLogs.map(l => formatDateDisplay(l.date));
         const sparklineData = recentLogs.map(l => l.weight);
 
         return { change7d, avg7d, sparklineLabels, sparklineData };
       } catch (e) {
-        return { change7d: '0.0', avg7d: '70.0', sparklineLabels: ['Today'], sparklineData: [70] };
+        return { change7d: '0.00', avg7d: '70.00', sparklineLabels: ['Today'], sparklineData: [70.00] };
       }
     }
 
@@ -586,9 +586,9 @@
       document.getElementById('user-age').value = appState.profile.age || 26;
       document.getElementById('user-gender').value = appState.profile.gender || 'male';
       document.getElementById('user-height').value = appState.profile.height || 175;
-      document.getElementById('user-weight').value = appState.profile.weight || 78.5;
+      document.getElementById('user-weight').value = (appState.profile.weight || 78.50).toFixed(2);
       document.getElementById('user-activity').value = appState.profile.activity || 1.375;
-      document.getElementById('user-target-weight').value = appState.profile.targetWeight || 72.0;
+      document.getElementById('user-target-weight').value = (appState.profile.targetWeight || 72.00).toFixed(2);
       document.getElementById('user-deficit').value = appState.profile.deficit || 500;
       document.getElementById('user-water-mode').value = appState.profile.waterTargetMode || 'dynamic';
       document.getElementById('user-water-goal').value = appState.water.goal || 3000;
@@ -612,9 +612,9 @@
       appState.profile.age = parseInt(document.getElementById('user-age').value) || 26;
       appState.profile.gender = document.getElementById('user-gender').value || 'male';
       appState.profile.height = parseFloat(document.getElementById('user-height').value) || 175;
-      appState.profile.weight = parseFloat(document.getElementById('user-weight').value) || 78.5;
+      appState.profile.weight = parseFloat(document.getElementById('user-weight').value) || 78.50;
       appState.profile.activity = parseFloat(document.getElementById('user-activity').value) || 1.375;
-      appState.profile.targetWeight = parseFloat(document.getElementById('user-target-weight').value) || 72.0;
+      appState.profile.targetWeight = parseFloat(document.getElementById('user-target-weight').value) || 72.00;
       appState.profile.deficit = parseInt(document.getElementById('user-deficit').value) || 500;
       appState.profile.waterTargetMode = document.getElementById('user-water-mode').value;
       appState.water.goal = parseInt(document.getElementById('user-water-goal').value) || 3000;
@@ -941,10 +941,10 @@
 
     function renderProgress(container) {
       const logs = appState.weightLogs || [];
-      const currentWeight = appState.profile.weight || 70;
-      const targetWeight = appState.profile.targetWeight || 65;
+      const currentWeight = appState.profile.weight || 78.50;
+      const targetWeight = appState.profile.targetWeight || 72.00;
       const startWeight = logs.length > 0 ? logs[0].weight : currentWeight;
-      const totalToLose = Math.max(0.1, startWeight - targetWeight);
+      const totalToLose = Math.max(0.01, startWeight - targetWeight);
       const weightLost = Math.max(0, startWeight - currentWeight);
       const weightProgressPct = Math.min(100, Math.max(0, Math.round((weightLost / totalToLose) * 100)));
 
@@ -968,8 +968,8 @@
                 ${activeSubView === 'weight' ? 'Target Berat Badan' : 'Target Lingkar Pinggang'}
               </p>
               <h2 class="text-3xl font-extrabold text-white mt-0.5">
-                ${activeSubView === 'weight' ? currentWeight + ' kg' : (appState.profile.currentWaist || 88) + ' cm'}
-                <span class="text-sm font-normal text-neutral-400">/ ${activeSubView === 'weight' ? targetWeight + ' kg' : (appState.profile.targetWaist || 80) + ' cm'}</span>
+                ${activeSubView === 'weight' ? currentWeight.toFixed(2) + ' kg' : (appState.profile.currentWaist || 88.00).toFixed(2) + ' cm'}
+                <span class="text-sm font-normal text-neutral-400">/ ${activeSubView === 'weight' ? targetWeight.toFixed(2) + ' kg' : (appState.profile.targetWaist || 80.00).toFixed(2) + ' cm'}</span>
               </h2>
             </div>
             <div class="px-3 py-1.5 rounded-full ${activeSubView === 'weight' ? 'bg-ios-blue/20 text-ios-blue border border-ios-blue/30' : 'bg-ios-cyan/20 text-ios-cyan border border-ios-cyan/30'} text-xs font-bold">
@@ -982,8 +982,8 @@
               <div class="bg-ios-blue h-full rounded-full transition-all duration-500" style="width: ${weightProgressPct}%"></div>
             </div>
             <div class="flex justify-between text-[11px] text-neutral-400">
-              <span>Awal: ${startWeight} kg</span>
-              <span>Sisa: ${(currentWeight - targetWeight).toFixed(1)} kg</span>
+              <span>Awal: ${startWeight.toFixed(2)} kg</span>
+              <span>Sisa: ${(currentWeight - targetWeight).toFixed(2)} kg</span>
             </div>
           </div>
 
@@ -1005,11 +1005,11 @@
             <div class="grid grid-cols-2 gap-2">
               <div>
                 <label class="text-[10px] text-neutral-400 font-medium">Berat (kg)</label>
-                <input type="number" step="0.1" id="new-weight-val" value="${currentWeight}" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
+                <input type="number" step="0.01" id="new-weight-val" value="${currentWeight.toFixed(2)}" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
               </div>
               <div>
                 <label class="text-[10px] text-neutral-400 font-medium">Lingkar Pinggang (cm)</label>
-                <input type="number" step="0.5" id="new-waist-val" value="${appState.profile.currentWaist || 88}" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
+                <input type="number" step="0.01" id="new-waist-val" value="${(appState.profile.currentWaist || 88.00).toFixed(2)}" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
               </div>
             </div>
             <button type="submit" class="w-full py-2.5 bg-ios-blue text-white font-bold rounded-xl ios-active mt-1">
@@ -1040,7 +1040,7 @@
                       <p class="text-[10px] text-ios-cyan mt-0.5">📅 Prediksi Target: <span class="font-bold">${m.completed ? 'Tercapai' : projectedDate}</span></p>
                     </div>
                   </div>
-                  <span class="text-[11px] text-neutral-400 font-medium">${m.targetValue} ${m.type === 'weight' ? 'kg' : 'cm'}</span>
+                  <span class="text-[11px] text-neutral-400 font-medium">${m.targetValue.toFixed(2)} ${m.type === 'weight' ? 'kg' : 'cm'}</span>
                 </div>
               `;
             }).join('')}
@@ -1055,7 +1055,7 @@
 
     function calculateMilestoneEstDate(targetValue, type) {
       try {
-        const currentVal = type === 'weight' ? (appState.profile.weight || 70) : (appState.profile.currentWaist || 88);
+        const currentVal = type === 'weight' ? (appState.profile.weight || 70.00) : (appState.profile.currentWaist || 88.00);
         const diff = currentVal - targetValue;
         if (diff <= 0) return 'Sudah Tercapai! 🎉';
 
@@ -1400,7 +1400,7 @@
 
       const logs = appState.weightLogs || [];
       const labels = logs.map(l => formatDateDisplay(l.date));
-      const data = logs.map(l => subView === 'weight' ? l.weight : (l.waist || 88));
+      const data = logs.map(l => subView === 'weight' ? l.weight : (l.waist || 88.00));
 
       weightChartInstance = new Chart(ctx, {
         type: 'line',
@@ -1435,8 +1435,27 @@
       const runs = (appState.fitness.runs || []).filter(r => r.date === selectedDate);
       const workouts = (appState.fitness.workouts || []).filter(w => w.date === selectedDate);
       
+      const { tdee, targetCalories } = calculateTDEE();
+      
       const allRuns = appState.fitness.runs || [];
-      const totalKm = allRuns.reduce((acc, r) => acc + (r.distance || 0), 0).toFixed(1);
+      const allWorkouts = appState.fitness.workouts || [];
+      const totalBurnedAllTime = allRuns.reduce((acc, r) => acc + (r.calories || 0), 0) + allWorkouts.reduce((acc, w) => acc + (w.calories || 0), 0);
+
+      const dayMealsAll = (appState.meals || []);
+      const totalLoggedAll = dayMealsAll.reduce((acc, m) => acc + (m.calories || 0), 0);
+      
+      const logsCount = Math.max(1, new Set(dayMealsAll.map(m => m.date)).size);
+      const avgIntake = Math.round(totalLoggedAll / logsCount);
+      const avgBurn = Math.round(totalBurnedAllTime / logsCount);
+      
+      const netDailyDiff = tdee - avgIntake + avgBurn;
+      const expectedKgLoss = (netDailyDiff * logsCount) / 7700;
+
+      const firstLogWeight = appState.weightLogs && appState.weightLogs.length > 0 ? appState.weightLogs[0].weight : (appState.profile.weight || 78.50);
+      const currentWeightNow = appState.profile.weight || 78.50;
+      const actualKgLost = firstLogWeight - currentWeightNow;
+      
+      const isEffective = expectedKgLoss >= actualKgLost;
 
       container.innerHTML = `
         <div class="bg-ios-card border border-white/10 rounded-2xl p-2.5 flex items-center justify-between text-xs font-semibold">
@@ -1461,15 +1480,32 @@
           </button>
         </div>
 
-        <div class="bg-ios-card border border-white/10 rounded-[26px] p-5 space-y-3">
+        <!-- Deficit & Effectiveness Analytics Card -->
+        <div class="bg-ios-card border border-white/10 rounded-[26px] p-5 space-y-3 relative overflow-hidden">
           <div class="flex justify-between items-center">
             <div>
-              <p class="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Total Jarak Lari (Akumulasi)</p>
-              <h2 class="text-4xl font-extrabold mt-1 text-white">${totalKm} <span class="text-lg font-normal text-neutral-400">km</span></h2>
+              <p class="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Analisis Efektivitas Defisit</p>
+              <h2 class="text-2xl font-extrabold mt-1 text-white">${netDailyDiff > 0 ? '-' + netDailyDiff : netDailyDiff} <span class="text-xs font-normal text-neutral-400">kcal Net Defisit / Hari</span></h2>
             </div>
-            <div class="w-12 h-12 rounded-2xl bg-ios-purple/20 border border-ios-purple/30 flex items-center justify-center text-ios-purple">
-              <i data-lucide="footprints" class="w-6 h-6"></i>
+            <div class="w-12 h-12 rounded-2xl bg-ios-cyan/20 border border-ios-cyan/30 flex items-center justify-center text-ios-cyan">
+              <i data-lucide="activity" class="w-6 h-6"></i>
             </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 pt-1 border-t border-white/5 text-xs">
+            <div class="bg-ios-cardSecondary p-2.5 rounded-xl">
+              <span class="text-[10px] text-neutral-400 uppercase block">Prediksi Penurunan</span>
+              <span class="text-sm font-bold text-ios-green">${expectedKgLoss.toFixed(2)} kg</span>
+            </div>
+            <div class="bg-ios-cardSecondary p-2.5 rounded-xl">
+              <span class="text-[10px] text-neutral-400 uppercase block">Penurunan Aktual</span>
+              <span class="text-sm font-bold text-ios-blue">${actualKgLost.toFixed(2)} kg</span>
+            </div>
+          </div>
+
+          <div class="p-3 rounded-xl bg-white/5 border border-white/5 text-[11px] text-neutral-300 flex items-start space-x-2">
+            <i data-lucide="info" class="w-4 h-4 text-ios-cyan shrink-0 mt-0.5"></i>
+            <span>${isEffective ? '✅ Defisit kalori Anda sangat efektif dan selaras dengan hasil penurunan berat badan.' : '⚠️ Penurunan aktual sedikit melambat dibanding estimasi defisit. Periksa konsistensi porsi makan.'}</span>
           </div>
         </div>
 
@@ -1487,7 +1523,7 @@
               <div class="grid grid-cols-2 gap-2">
                 <div>
                   <label class="text-[10px] text-neutral-400 font-medium">Jarak (km)</label>
-                  <input type="number" step="0.1" id="run-dist" placeholder="contoh: 5.0" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
+                  <input type="number" step="0.01" id="run-dist" placeholder="contoh: 5.00" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
                 </div>
                 <div>
                   <label class="text-[10px] text-neutral-400 font-medium">Durasi Total (menit)</label>
