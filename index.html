@@ -92,6 +92,27 @@
     .pt-safe {
       padding-top: env(safe-area-inset-top, 12px);
     }
+
+    /* Compact iOS Date Input Styling */
+    input[type="date"] {
+      appearance: none;
+      -webkit-appearance: none;
+      background-color: rgba(44, 44, 46, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 6px 10px;
+      color: #ffffff;
+      font-size: 13px;
+      font-family: inherit;
+      text-align: center;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    input[type="date"]::-webkit-calendar-picker-indicator {
+      filter: invert(1);
+      cursor: pointer;
+      opacity: 0.7;
+    }
   </style>
 </head>
 <body class="h-full bg-black text-white flex flex-col justify-between selection:bg-ios-blue/30 overflow-hidden">
@@ -149,6 +170,45 @@
 
       </div>
     </nav>
+  </div>
+
+  <!-- Scan Category Confirmation Modal -->
+  <div id="scan-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 transition-opacity">
+    <div class="bg-ios-card border border-white/10 w-full max-w-sm rounded-[32px] p-6 space-y-4 shadow-2xl">
+      <div class="text-center space-y-1">
+        <div class="w-12 h-12 rounded-2xl bg-ios-blue/20 text-ios-blue mx-auto flex items-center justify-center mb-2">
+          <i data-lucide="sparkles" class="w-6 h-6"></i>
+        </div>
+        <h3 class="text-lg font-bold text-white">Konfirmasi Kategori Makanan</h3>
+        <p id="scan-preview-title" class="text-xs text-neutral-400">Pilih waktu makan untuk hasil scan AI:</p>
+      </div>
+
+      <div class="space-y-2 pt-1 text-xs">
+        <div class="bg-ios-cardSecondary p-3 rounded-2xl border border-white/5 space-y-1 text-center">
+          <p id="scan-detected-info" class="font-bold text-white text-sm">-</p>
+          <p id="scan-detected-macros" class="text-neutral-400 text-[11px]">-</p>
+        </div>
+
+        <div>
+          <label class="text-[10px] text-neutral-400 font-medium">Kategori Waktu Makan</label>
+          <select id="scan-category-select" class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl px-3 py-2.5 text-white mt-1 text-xs">
+            <option value="Breakfast">Sarapan (Breakfast)</option>
+            <option value="Lunch" selected>Makan Siang (Lunch)</option>
+            <option value="Dinner">Makan Malam (Dinner)</option>
+            <option value="Snack">Cemilan (Snack)</option>
+          </select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 pt-2">
+          <button onclick="closeScanModal()" class="py-2.5 bg-ios-cardSecondary text-neutral-300 font-bold rounded-xl ios-active">
+            Batal
+          </button>
+          <button onclick="confirmScannedMeal()" class="py-2.5 bg-ios-blue text-white font-bold rounded-xl ios-active">
+            Simpan Makanan
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Profile & Metrics Modal -->
@@ -325,6 +385,7 @@
     let weightChartInstance = null;
     let weeklySparklineInstance = null;
     let selectedDate = getTodayString();
+    let tempScannedMeal = null;
 
     function getWibDateString(d) {
       try {
@@ -776,7 +837,7 @@
           </button>
           <div class="flex items-center space-x-2">
             <i data-lucide="calendar" class="w-4 h-4 text-ios-blue"></i>
-            <input type="date" value="${selectedDate}" onchange="changeSelectedDate(this.value)" class="bg-transparent text-white font-bold text-center border-b border-white/20 pb-0.5 cursor-pointer focus:border-ios-blue">
+            <input type="date" value="${selectedDate}" onchange="changeSelectedDate(this.value)">
             ${isToday ? '<span class="text-[9px] bg-ios-green/20 text-ios-green px-2 py-0.5 rounded-full uppercase font-extrabold">Hari Ini</span>' : ''}
           </div>
           <button onclick="shiftSelectedDate(1)" class="p-2 bg-ios-cardSecondary rounded-xl ios-active text-neutral-300 hover:text-white flex items-center gap-1">
@@ -1000,7 +1061,7 @@
           <form onsubmit="handleAddWeightLog(event)" class="space-y-2 text-xs">
             <div>
               <label class="text-[10px] text-neutral-400 font-medium">Tanggal Pencatatan</label>
-              <input type="date" id="new-log-date" value="${todayStr}" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
+              <input type="date" id="new-log-date" value="${todayStr}" required>
             </div>
             <div class="grid grid-cols-2 gap-2">
               <div>
@@ -1133,7 +1194,7 @@
           </button>
           <div class="flex items-center space-x-2">
             <i data-lucide="calendar" class="w-4 h-4 text-ios-blue"></i>
-            <input type="date" value="${selectedDate}" onchange="changeSelectedDate(this.value)" class="bg-transparent text-white font-bold text-center border-b border-white/20 pb-0.5 cursor-pointer focus:border-ios-blue">
+            <input type="date" value="${selectedDate}" onchange="changeSelectedDate(this.value)">
           </div>
           <button onclick="shiftSelectedDate(1)" class="p-2 bg-ios-cardSecondary rounded-xl ios-active text-neutral-300 hover:text-white">
             <i data-lucide="chevron-right" class="w-4 h-4"></i>
@@ -1176,18 +1237,25 @@
               </div>
               <div>
                 <h3 class="text-xs font-bold text-white uppercase tracking-wider">Scan Makanan AI</h3>
-                <p class="text-[10px] text-neutral-300">Foto makanan untuk deteksi otomatis kalori & makro</p>
+                <p class="text-[10px] text-neutral-300">Foto dari kamera atau pilih file dari galeri HP</p>
               </div>
             </div>
           </div>
 
-          <div class="pt-1">
-            <label class="w-full py-3 bg-ios-blue text-white font-bold rounded-xl ios-active flex items-center justify-center space-x-2 cursor-pointer shadow-lg shadow-ios-blue/20 text-xs">
-              <i data-lucide="sparkles" class="w-4 h-4 text-ios-cyan"></i>
-              <span id="scan-btn-text">Ambil Foto / Upload Makanan</span>
-              <input type="file" id="food-image-input" accept="image/*" capture="environment" onchange="handleFoodScan(event)" class="hidden">
+          <div class="grid grid-cols-2 gap-2 pt-1">
+            <label class="py-2.5 bg-ios-blue text-white font-bold rounded-xl ios-active flex items-center justify-center space-x-1.5 cursor-pointer shadow-lg shadow-ios-blue/20 text-xs">
+              <i data-lucide="camera" class="w-3.5 h-3.5"></i>
+              <span>Kamera HP</span>
+              <input type="file" id="food-camera-input" accept="image/*" capture="environment" onchange="handleFoodScan(event)" class="hidden">
+            </label>
+
+            <label class="py-2.5 bg-ios-cardSecondary border border-white/10 text-white font-bold rounded-xl ios-active flex items-center justify-center space-x-1.5 cursor-pointer text-xs">
+              <i data-lucide="image" class="w-3.5 h-3.5 text-ios-cyan"></i>
+              <span>Pilih Galeri</span>
+              <input type="file" id="food-gallery-input" accept="image/*" onchange="handleFoodScan(event)" class="hidden">
             </label>
           </div>
+
           <div id="scan-loading" class="hidden text-center text-xs text-ios-cyan py-2 animate-pulse font-medium">
             ✨ Gemini sedang menganalisis foto makanan & menghitung kalori...
           </div>
@@ -1201,7 +1269,7 @@
           <form onsubmit="handleManualMealSubmit(event)" class="space-y-2 text-xs">
             <div>
               <label class="text-[10px] text-neutral-400 font-medium">Tanggal Makan</label>
-              <input type="date" id="manual-meal-date" value="${selectedDate}" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
+              <input type="date" id="manual-meal-date" value="${selectedDate}">
             </div>
             <input type="text" id="manual-meal-name" placeholder="Nama Makanan (contoh: Ayam Dada Bakar)" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white">
             <div class="grid grid-cols-2 gap-2">
@@ -1262,9 +1330,7 @@
       if (!file) return;
 
       const loadingEl = document.getElementById('scan-loading');
-      const btnTextEl = document.getElementById('scan-btn-text');
       if (loadingEl) loadingEl.classList.remove('hidden');
-      if (btnTextEl) btnTextEl.innerText = "Menganalisis Makanan...";
 
       try {
         const reader = new FileReader();
@@ -1299,22 +1365,25 @@
           const result = await response.json();
           const candidate = result.candidates?.[0];
           if (candidate && candidate.content?.parts?.[0]?.text) {
-            const jsonText = candidate.content.parts[0].text;
+            let jsonText = candidate.content.parts[0].text;
+            if (jsonText.includes("```json")) {
+              jsonText = jsonText.replace(/```json/g, "").replace(/```/g, "").trim();
+            }
             const parsed = JSON.parse(jsonText);
 
-            appState.meals.push({
+            tempScannedMeal = {
               id: Date.now().toString(),
               date: selectedDate,
               name: parsed.name || 'AI Scanned Meal',
-              category: 'Lunch',
               calories: parseInt(parsed.calories) || 400,
               protein: parseInt(parsed.protein) || 25,
               carbs: parseInt(parsed.carbs) || 40,
               fat: parseInt(parsed.fat) || 15
-            });
+            };
 
-            saveState();
-            renderView();
+            document.getElementById('scan-detected-info').innerText = `${tempScannedMeal.name} (${tempScannedMeal.calories} kcal)`;
+            document.getElementById('scan-detected-macros').innerText = `Protein: ${tempScannedMeal.protein}g | Karbo: ${tempScannedMeal.carbs}g | Lemak: ${tempScannedMeal.fat}g`;
+            document.getElementById('scan-modal').classList.remove('hidden');
           }
         };
         reader.readAsDataURL(file);
@@ -1322,8 +1391,24 @@
         console.error("AI Scan Error:", err);
       } finally {
         if (loadingEl) loadingEl.classList.add('hidden');
-        if (btnTextEl) btnTextEl.innerText = "Ambil Foto / Upload Makanan";
+        event.target.value = ''; // reset file input
       }
+    }
+
+    function closeScanModal() {
+      tempScannedMeal = null;
+      document.getElementById('scan-modal').classList.add('hidden');
+    }
+
+    function confirmScannedMeal() {
+      if (!tempScannedMeal) return;
+      const category = document.getElementById('scan-category-select').value;
+      tempScannedMeal.category = category;
+
+      appState.meals.push(tempScannedMeal);
+      saveState();
+      closeScanModal();
+      renderView();
     }
 
     function handleManualMealSubmit(e) {
@@ -1464,7 +1549,7 @@
           </button>
           <div class="flex items-center space-x-2">
             <i data-lucide="calendar" class="w-4 h-4 text-ios-blue"></i>
-            <input type="date" value="${selectedDate}" onchange="changeSelectedDate(this.value)" class="bg-transparent text-white font-bold text-center border-b border-white/20 pb-0.5 cursor-pointer focus:border-ios-blue">
+            <input type="date" value="${selectedDate}" onchange="changeSelectedDate(this.value)">
           </div>
           <button onclick="shiftSelectedDate(1)" class="p-2 bg-ios-cardSecondary rounded-xl ios-active text-neutral-300 hover:text-white">
             <i data-lucide="chevron-right" class="w-4 h-4"></i>
@@ -1518,7 +1603,7 @@
             <form onsubmit="handleAddRun(event)" class="space-y-2 text-xs">
               <div>
                 <label class="text-[10px] text-neutral-400 font-medium">Tanggal Sesi</label>
-                <input type="date" id="run-date" value="${selectedDate}" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
+                <input type="date" id="run-date" value="${selectedDate}">
               </div>
               <div class="grid grid-cols-2 gap-2">
                 <div>
@@ -1570,7 +1655,7 @@
             <form onsubmit="handleAddWorkout(event)" class="space-y-2 text-xs">
               <div>
                 <label class="text-[10px] text-neutral-400 font-medium">Tanggal Sesi</label>
-                <input type="date" id="workout-date" value="${selectedDate}" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
+                <input type="date" id="workout-date" value="${selectedDate}">
               </div>
               <div>
                 <label class="text-[10px] text-neutral-400 font-medium">Judul / Fokus Latihan</label>
