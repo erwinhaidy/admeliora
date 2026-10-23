@@ -512,13 +512,11 @@
       try {
         const todayStr = getTodayString();
         
-        // Helper to check consecutive days backwards in WIB timezone
         function getStreakForDates(dateSet, validatorFn) {
           let streak = 0;
           let curr = new Date(todayStr + 'T00:00:00');
           let currStr = getWibDateString(curr);
           
-          // If today isn't logged yet, check if yesterday was logged to maintain streak
           if (!validatorFn(currStr)) {
             curr.setDate(curr.getDate() - 1);
             currStr = getWibDateString(curr);
@@ -1399,61 +1397,71 @@
       try {
         const reader = new FileReader();
         reader.onload = async function(e) {
-          const base64Data = e.target.result.split(',')[1];
-          const mimeType = file.type || 'image/jpeg';
+          try {
+            const base64Data = e.target.result.split(',')[1];
+            const mimeType = file.type || 'image/jpeg';
 
-          const apiKey = ""; 
-          const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+            const apiKey = ""; 
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
 
-          const prompt = "Analyze this food image. Provide estimation for the meal name, estimated total calories (kcal), protein in grams, carbs in grams, and fat in grams. Respond strictly in valid JSON format with keys: name (string), calories (number), protein (number), carbs (number), fat (number).";
+            const prompt = "Analyze this food image. Provide estimation for the meal name, estimated total calories (kcal), protein in grams, carbs in grams, and fat in grams. Respond strictly in valid JSON format with keys: name (string), calories (number), protein (number), carbs (number), fat (number).";
 
-          const payload = {
-            contents: [{
-              role: 'user',
-              parts: [
-                { text: prompt },
-                { inlineData: { mimeType: mimeType, data: base64Data } }
-              ]
-            }],
-            generationConfig: {
-              responseMimeType: "application/json"
-            }
-          };
-
-          const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          });
-
-          const result = await response.json();
-          const candidate = result.candidates?.[0];
-          if (candidate && candidate.content?.parts?.[0]?.text) {
-            let jsonText = candidate.content.parts[0].text;
-            if (jsonText.includes("```json")) {
-              jsonText = jsonText.replace(/```json/g, "").replace(/```/g, "").trim();
-            }
-            const parsed = JSON.parse(jsonText);
-
-            tempScannedMeal = {
-              id: Date.now().toString(),
-              date: selectedDate,
-              name: parsed.name || 'AI Scanned Meal',
-              calories: parseInt(parsed.calories) || 400,
-              protein: parseInt(parsed.protein) || 25,
-              carbs: parseInt(parsed.carbs) || 40,
-              fat: parseInt(parsed.fat) || 15
+            const payload = {
+              contents: [{
+                role: 'user',
+                parts: [
+                  { text: prompt },
+                  { inlineData: { mimeType: mimeType, data: base64Data } }
+                ]
+              }],
+              generationConfig: {
+                responseMimeType: "application/json"
+              }
             };
 
-            document.getElementById('scan-detected-info').innerText = `${tempScannedMeal.name} (${tempScannedMeal.calories} kcal)`;
-            document.getElementById('scan-detected-macros').innerText = `Protein: ${tempScannedMeal.protein}g | Karbo: ${tempScannedMeal.carbs}g | Lemak: ${tempScannedMeal.fat}g`;
-            document.getElementById('scan-modal').classList.remove('hidden');
+            const response = await fetch(apiUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+            });
+
+            const result = await response.json();
+            const candidate = result.candidates?.[0];
+            if (candidate && candidate.content?.parts?.[0]?.text) {
+              let jsonText = candidate.content.parts[0].text;
+              if (jsonText.includes("```json")) {
+                jsonText = jsonText.replace(/```json/g, "").replace(/```/g, "").trim();
+              }
+              const parsed = JSON.parse(jsonText);
+
+              tempScannedMeal = {
+                id: Date.now().toString(),
+                date: selectedDate,
+                name: parsed.name || 'AI Scanned Meal',
+                calories: parseInt(parsed.calories) || 400,
+                protein: parseInt(parsed.protein) || 25,
+                carbs: parseInt(parsed.carbs) || 40,
+                fat: parseInt(parsed.fat) || 15
+              };
+
+              document.getElementById('scan-detected-info').innerText = `${tempScannedMeal.name} (${tempScannedMeal.calories} kcal)`;
+              document.getElementById('scan-detected-macros').innerText = `Protein: ${tempScannedMeal.protein}g | Karbo: ${tempScannedMeal.carbs}g | Lemak: ${tempScannedMeal.fat}g`;
+              
+              const scanModal = document.getElementById('scan-modal');
+              if (scanModal) {
+                scanModal.classList.remove('hidden');
+              }
+            }
+          } catch (parseErr) {
+            console.error("AI Parse Error:", parseErr);
+            alert("Gagal memproses gambar dengan AI. Silakan coba foto lain atau catat manual.");
+          } finally {
+            if (loadingEl) loadingEl.classList.add('hidden');
+            event.target.value = '';
           }
         };
         reader.readAsDataURL(file);
       } catch (err) {
-        console.error("AI Scan Error:", err);
-      } finally {
         if (loadingEl) loadingEl.classList.add('hidden');
         event.target.value = '';
       }
