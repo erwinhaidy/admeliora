@@ -299,19 +299,24 @@
         currentWaist: 88,
         waterTargetMode: 'dynamic'
       },
+      // Daily water intake logs keyed by 'YYYY-MM-DD'
+      waterLogs: {
+        '2026-10-19': 3000,
+        '2026-10-20': 2500,
+        '2026-10-21': 1750
+      },
       water: {
-        current: 1750,
-        goal: 3000,
-        lastLoggedDate: ''
+        goal: 3000
       },
       meals: [
-        { id: '1', name: 'Oatmeal & Protein Whey', calories: 420, protein: 32, carbs: 54, fat: 8, category: 'Breakfast', date: '2026-10-19' },
-        { id: '2', name: 'Nasi Merah & Dada Ayam Bakar', calories: 580, protein: 48, carbs: 52, fat: 12, category: 'Lunch', date: '2026-10-19' }
+        { id: '1', name: 'Oatmeal & Protein Whey', calories: 420, protein: 32, carbs: 54, fat: 8, category: 'Breakfast', date: '2026-10-21' },
+        { id: '2', name: 'Nasi Merah & Dada Ayam Bakar', calories: 580, protein: 48, carbs: 52, fat: 12, category: 'Lunch', date: '2026-10-21' }
       ],
       fitness: {
         runs: [
           { id: 'r1', date: '2026-10-15', distance: 5.2, duration: '28:15', pace: '5:26', heartRate: 152, calories: 340 },
-          { id: 'r2', date: '2026-10-18', distance: 7.0, duration: '39:10', pace: '5:35', heartRate: 158, calories: 480 }
+          { id: 'r2', date: '2026-10-18', distance: 7.0, duration: '39:10', pace: '5:35', heartRate: 158, calories: 480 },
+          { id: 'r3', date: '2026-10-21', distance: 3.5, duration: '19:40', pace: '5:37', heartRate: 148, calories: 220 }
         ]
       },
       milestones: [
@@ -335,6 +340,50 @@
     let weightChartInstance = null;
     let weeklySparklineInstance = null;
     let editingRunId = null;
+    let selectedDate = getTodayString();
+
+    // Helper function to format date strings for display
+    function formatDateDisplay(dateStr) {
+      if (!dateStr) return '';
+      try {
+        const parts = dateStr.split('-');
+        if (parts.length === 3) {
+          const d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+          return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+        }
+        return dateStr;
+      } catch (e) {
+        return dateStr;
+      }
+    }
+
+    // Helper function to calculate BMR and TDEE (Mifflin-St Jeor Formula)
+    function calculateTDEE() {
+      try {
+        const p = appState.profile || DEFAULT_STATE.profile;
+        const weight = p.weight || 70;
+        const height = p.height || 170;
+        const age = p.age || 25;
+        const gender = p.gender || 'male';
+        const activity = p.activity || 1.375;
+        const deficit = p.deficit || 500;
+
+        let bmr = (10 * weight) + (6.25 * height) - (5 * age);
+        if (gender === 'male') {
+          bmr += 5;
+        } else {
+          bmr -= 161;
+        }
+
+        bmr = Math.round(bmr);
+        const tdee = Math.round(bmr * activity);
+        const targetCalories = Math.max(1200, tdee - deficit);
+
+        return { bmr, tdee, targetCalories };
+      } catch (e) {
+        return { bmr: 1600, tdee: 2200, targetCalories: 1700 };
+      }
+    }
 
     function getTodayString() {
       try {
@@ -347,27 +396,41 @@
       }
     }
 
-    function formatDateDisplay(dateStr) {
-      if (!dateStr) return '';
+    function changeSelectedDate(newDate) {
+      if (!newDate) return;
+      selectedDate = newDate;
+      renderView();
+    }
+
+    function shiftSelectedDate(days) {
       try {
-        const d = new Date(dateStr + (dateStr.includes('T') ? '' : 'T00:00:00'));
-        if (isNaN(d.getTime())) return dateStr;
-        return d.toLocaleDateString('id-ID', { timeZone: 'Asia/Jakarta', day: 'numeric', month: 'short' });
+        const d = new Date(selectedDate + 'T00:00:00');
+        d.setDate(d.getDate() + days);
+        selectedDate = getWibDateString(d);
+        renderView();
       } catch (e) {
-        return dateStr;
+        console.error("Error shifting date", e);
       }
     }
 
+    function getWaterForDate(dateStr) {
+      if (!appState.waterLogs) appState.waterLogs = {};
+      return appState.waterLogs[dateStr] || 0;
+    }
+
+    function setWaterForDate(dateStr, val) {
+      if (!appState.waterLogs) appState.waterLogs = {};
+      appState.waterLogs[dateStr] = Math.max(0, val);
+      saveState();
+    }
+
     function checkDayChange() {
-      try {
-        const todayWIB = getTodayString();
-        if (appState.water.lastLoggedDate !== todayWIB) {
-          appState.water.current = 0;
-          appState.water.lastLoggedDate = todayWIB;
-          saveState();
+      // Compatibility migration
+      if (!appState.waterLogs) {
+        appState.waterLogs = {};
+        if (appState.water && appState.water.current !== undefined) {
+          appState.waterLogs[getTodayString()] = appState.water.current;
         }
-      } catch (e) {
-        console.error("Error in checkDayChange:", e);
       }
     }
 
@@ -397,21 +460,32 @@
           currStr = getWibDateString(currMeal);
         }
 
-        const waterGoal = getDynamicWaterGoal();
-        let waterStreak = (appState.water && appState.water.current >= waterGoal) ? 1 : 0;
+        const waterGoal = getDynamicWaterGoal(todayStr);
+        let waterStreak = 0;
+        let currWater = new Date(todayStr + 'T00:00:00');
+        let currWStr = getWibDateString(currWater);
+        if (getWaterForDate(currWStr) < waterGoal) {
+          currWater.setDate(currWater.getDate() - 1);
+          currWStr = getWibDateString(currWater);
+        }
+        while (getWaterForDate(currWStr) >= waterGoal && waterGoal > 0) {
+          waterStreak++;
+          currWater.setDate(currWater.getDate() - 1);
+          currWStr = getWibDateString(currWater);
+        }
 
         const weightDates = new Set((appState.weightLogs || []).map(w => w.date));
         let weightStreak = 0;
         let currWeight = new Date(todayStr + 'T00:00:00');
-        let currWStr = getWibDateString(currWeight);
-        if (!weightDates.has(currWStr)) {
+        let currWStrWeight = getWibDateString(currWeight);
+        if (!weightDates.has(currWStrWeight)) {
           currWeight.setDate(currWeight.getDate() - 1);
-          currWStr = getWibDateString(currWeight);
+          currWStrWeight = getWibDateString(currWeight);
         }
-        while (weightDates.has(currWStr)) {
+        while (weightDates.has(currWStrWeight)) {
           weightStreak++;
           currWeight.setDate(currWeight.getDate() - 1);
-          currWStr = getWibDateString(currWeight);
+          currWStrWeight = getWibDateString(currWeight);
         }
 
         return { mealStreak, waterStreak, weightStreak };
@@ -470,7 +544,7 @@
       }
     }
 
-    function getDynamicWaterGoal() {
+    function getDynamicWaterGoal(dateStr = selectedDate) {
       try {
         if (appState.profile.waterTargetMode === 'custom' && appState.water.goal) {
           return appState.water.goal;
@@ -478,7 +552,7 @@
 
         const baseHydration = (appState.profile.weight || 70) * 35;
         let workoutExtra = 0;
-        const runs = appState.fitness.runs || [];
+        const runs = (appState.fitness.runs || []).filter(r => r.date === dateStr);
         runs.forEach(r => {
           if (r.duration) {
             const parts = r.duration.split(':');
@@ -495,28 +569,15 @@
       }
     }
 
-    function calculateTDEE() {
+    function calculateAdMelioraScore(dateStr = selectedDate) {
       try {
-        const { weight = 70, height = 170, age = 25, gender = 'male', activity = 1.375, deficit = 500 } = appState.profile;
-        let bmr = (10 * weight) + (6.25 * height) - (5 * age);
-        bmr += (gender === 'male') ? 5 : -161;
-        const tdee = Math.round(bmr * parseFloat(activity));
-        const targetCalories = Math.max(1000, tdee - deficit);
-        return { bmr: Math.round(bmr), tdee, targetCalories };
-      } catch (e) {
-        return { bmr: 1600, tdee: 2200, targetCalories: 1700 };
-      }
-    }
+        const activeGoal = getDynamicWaterGoal(dateStr);
+        const currentWater = getWaterForDate(dateStr);
+        const waterScore = Math.min(40, (currentWater / (activeGoal || 3000)) * 40);
 
-    function calculateAdMelioraScore() {
-      try {
-        const activeGoal = getDynamicWaterGoal();
-        const waterScore = Math.min(40, ((appState.water.current || 0) / (activeGoal || 3000)) * 40);
-
-        const todayStr = getTodayString();
-        const todayMeals = (appState.meals || []).filter(m => m.date === todayStr);
-        const totalCaloriesLogged = todayMeals.reduce((sum, m) => sum + (m.calories || 0), 0);
-        const totalCaloriesBurned = (appState.fitness.runs || []).filter(r => r.date === todayStr).reduce((sum, r) => sum + (r.calories || 0), 0);
+        const dayMeals = (appState.meals || []).filter(m => m.date === dateStr);
+        const totalCaloriesLogged = dayMeals.reduce((sum, m) => sum + (m.calories || 0), 0);
+        const totalCaloriesBurned = (appState.fitness.runs || []).filter(r => r.date === dateStr).reduce((sum, r) => sum + (r.calories || 0), 0);
         const netCalories = totalCaloriesLogged - totalCaloriesBurned;
         const { targetCalories } = calculateTDEE();
         const calorieRatio = targetCalories > 0 ? (netCalories / targetCalories) : 0;
@@ -525,7 +586,8 @@
         if (calorieRatio >= 0.5 && calorieRatio <= 1.05) mealScore = 35;
         else if (calorieRatio > 0) mealScore = 20;
 
-        const fitnessScore = (appState.fitness.runs && appState.fitness.runs.length > 0) ? 25 : 10;
+        const dayRuns = (appState.fitness.runs || []).filter(r => r.date === dateStr);
+        const fitnessScore = dayRuns.length > 0 ? 25 : 10;
 
         return Math.min(100, Math.round(waterScore + mealScore + fitnessScore));
       } catch (e) {
@@ -749,23 +811,39 @@
 
     function renderDashboard(container) {
       checkDayChange();
-      const score = calculateAdMelioraScore();
+      const score = calculateAdMelioraScore(selectedDate);
       const { bmr, tdee, targetCalories } = calculateTDEE();
       
-      const todayStr = getTodayString();
-      const todayMeals = (appState.meals || []).filter(m => m.date === todayStr);
-      const totalLoggedCals = todayMeals.reduce((sum, m) => sum + (m.calories || 0), 0);
-      const totalBurnedCals = (appState.fitness.runs || []).filter(r => r.date === todayStr).reduce((sum, r) => sum + (r.calories || 0), 0);
+      const dayMeals = (appState.meals || []).filter(m => m.date === selectedDate);
+      const totalLoggedCals = dayMeals.reduce((sum, m) => sum + (m.calories || 0), 0);
+      const totalBurnedCals = (appState.fitness.runs || []).filter(r => r.date === selectedDate).reduce((sum, r) => sum + (r.calories || 0), 0);
       const netCals = totalLoggedCals - totalBurnedCals;
       const remainingCals = targetCalories - netCals;
 
-      const waterGoal = getDynamicWaterGoal();
-      const waterPct = waterGoal > 0 ? Math.min(100, Math.round(((appState.water.current || 0) / waterGoal) * 100)) : 0;
+      const currentWater = getWaterForDate(selectedDate);
+      const waterGoal = getDynamicWaterGoal(selectedDate);
+      const waterPct = waterGoal > 0 ? Math.min(100, Math.round((currentWater / waterGoal) * 100)) : 0;
 
       const weeklyStats = getWeeklyStats();
       const streaks = calculateStreaks();
+      const isToday = selectedDate === getTodayString();
 
       container.innerHTML = `
+        <!-- Date Switcher Header Bar -->
+        <div class="bg-ios-card border border-white/10 rounded-2xl p-2.5 flex items-center justify-between text-xs font-semibold">
+          <button onclick="shiftSelectedDate(-1)" class="p-2 bg-ios-cardSecondary rounded-xl ios-active text-neutral-300 hover:text-white flex items-center gap-1">
+            <i data-lucide="chevron-left" class="w-4 h-4"></i>
+          </button>
+          <div class="flex items-center space-x-2">
+            <i data-lucide="calendar" class="w-4 h-4 text-ios-blue"></i>
+            <input type="date" value="${selectedDate}" onchange="changeSelectedDate(this.value)" class="bg-transparent text-white font-bold text-center border-b border-white/20 pb-0.5 cursor-pointer focus:border-ios-blue">
+            ${isToday ? '<span class="text-[9px] bg-ios-green/20 text-ios-green px-2 py-0.5 rounded-full uppercase font-extrabold">Hari Ini</span>' : ''}
+          </div>
+          <button onclick="shiftSelectedDate(1)" class="p-2 bg-ios-cardSecondary rounded-xl ios-active text-neutral-300 hover:text-white flex items-center gap-1">
+            <i data-lucide="chevron-right" class="w-4 h-4"></i>
+          </button>
+        </div>
+
         <!-- Ad Meliora Score Widget -->
         <div class="bg-ios-card border border-white/10 rounded-[26px] p-5 shadow-xl relative overflow-hidden">
           <div class="flex justify-between items-start">
@@ -779,7 +857,7 @@
           </div>
           <p class="text-xs text-neutral-400 mt-3 border-t border-white/5 pt-3 flex justify-between items-center">
             <span>${score >= 80 ? '🔥 Performansi tinggi!' : '⚡ Catat makanan & penuhi hidrasi.'}</span>
-            <span class="text-[10px] text-ios-cyan font-semibold">WIB (UTC+7)</span>
+            <span class="text-[10px] text-ios-cyan font-semibold">${formatDateDisplay(selectedDate)}</span>
           </p>
         </div>
 
@@ -789,7 +867,7 @@
             <h3 class="text-xs font-bold uppercase tracking-wider text-neutral-400 flex items-center gap-1.5">
               <i data-lucide="flame" class="w-4 h-4 text-ios-orange"></i> Total Streaks Hari
             </h3>
-            <span class="text-[10px] text-ios-green font-semibold">Aktif Hari Ini</span>
+            <span class="text-[10px] text-ios-green font-semibold">Aktif Beruntun</span>
           </div>
           <div class="grid grid-cols-3 gap-2">
             <div class="bg-ios-cardSecondary border border-white/5 rounded-2xl p-2.5 text-center">
@@ -880,14 +958,14 @@
               </button>
             </div>
             <div class="my-2">
-              <span class="text-2xl font-bold text-white">${((appState.water.current || 0)/1000).toFixed(2)}</span>
+              <span class="text-2xl font-bold text-white">${(currentWater/1000).toFixed(2)}</span>
               <span class="text-xs text-neutral-400">/ ${(waterGoal/1000).toFixed(2)} L</span>
             </div>
             <div class="w-full bg-ios-cardSecondary h-2 rounded-full overflow-hidden mb-1.5">
               <div class="bg-ios-cyan h-full rounded-full transition-all duration-300" style="width: ${waterPct}%"></div>
             </div>
             <p class="text-[9px] text-ios-cyan font-medium leading-tight mb-2">
-              ${appState.profile.waterTargetMode === 'custom' ? 'Target Manual' : 'Target Dinamis (WIB)'}
+              ${appState.profile.waterTargetMode === 'custom' ? 'Target Manual' : 'Target Dinamis'}
             </p>
             
             <div class="grid grid-cols-3 gap-1 pt-1 border-t border-white/5">
@@ -922,9 +1000,8 @@
     }
 
     function addWater(amount) {
-      appState.water.current = Math.max(0, (appState.water.current || 0) + amount);
-      appState.water.lastLoggedDate = getTodayString();
-      saveState();
+      const current = getWaterForDate(selectedDate);
+      setWaterForDate(selectedDate, current + amount);
       renderView();
     }
 
@@ -1089,8 +1166,8 @@
     }
 
     function renderMeals(container) {
-      const meals = appState.meals || [];
-      const todayStr = getTodayString();
+      const allMeals = appState.meals || [];
+      const meals = allMeals.filter(m => m.date === selectedDate);
       
       const totalCal = meals.reduce((sum, m) => sum + (m.calories || 0), 0);
       const totalProtein = meals.reduce((sum, m) => sum + (m.protein || 0), 0);
@@ -1105,11 +1182,25 @@
       ];
 
       container.innerHTML = `
+        <!-- Date Selector Header Bar -->
+        <div class="bg-ios-card border border-white/10 rounded-2xl p-2.5 flex items-center justify-between text-xs font-semibold">
+          <button onclick="shiftSelectedDate(-1)" class="p-2 bg-ios-cardSecondary rounded-xl ios-active text-neutral-300 hover:text-white">
+            <i data-lucide="chevron-left" class="w-4 h-4"></i>
+          </button>
+          <div class="flex items-center space-x-2">
+            <i data-lucide="calendar" class="w-4 h-4 text-ios-blue"></i>
+            <input type="date" value="${selectedDate}" onchange="changeSelectedDate(this.value)" class="bg-transparent text-white font-bold text-center border-b border-white/20 pb-0.5 cursor-pointer focus:border-ios-blue">
+          </div>
+          <button onclick="shiftSelectedDate(1)" class="p-2 bg-ios-cardSecondary rounded-xl ios-active text-neutral-300 hover:text-white">
+            <i data-lucide="chevron-right" class="w-4 h-4"></i>
+          </button>
+        </div>
+
         <!-- Macro Summary Card -->
         <div class="bg-ios-card border border-white/10 rounded-[26px] p-5 space-y-4">
           <div class="flex justify-between items-center">
             <div>
-              <p class="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Total Asupan Makanan</p>
+              <p class="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Total Asupan (${formatDateDisplay(selectedDate)})</p>
               <h2 class="text-3xl font-extrabold text-white mt-0.5">${totalCal} <span class="text-sm font-normal text-neutral-400">kcal</span></h2>
             </div>
             <div class="w-10 h-10 rounded-2xl bg-ios-orange/20 border border-ios-orange/30 flex items-center justify-center text-ios-orange">
@@ -1142,7 +1233,7 @@
           <form onsubmit="handleManualMealSubmit(event)" class="space-y-2 text-xs">
             <div>
               <label class="text-[10px] text-neutral-400 font-medium">Tanggal Makan</label>
-              <input type="date" id="manual-meal-date" value="${todayStr}" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
+              <input type="date" id="manual-meal-date" value="${selectedDate}" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
             </div>
             <input type="text" id="manual-meal-name" placeholder="Nama Makanan (contoh: Ayam Dada Bakar)" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white">
             <div class="grid grid-cols-2 gap-2">
@@ -1167,7 +1258,9 @@
 
         <!-- Meal Items by Category -->
         <div class="space-y-4">
-          ${categories.map(cat => {
+          ${meals.length === 0 ? `
+            <div class="bg-ios-card border border-white/10 rounded-2xl p-4 text-center text-xs text-neutral-500 italic">Belum ada makanan dicatat untuk tanggal ${formatDateDisplay(selectedDate)}.</div>
+          ` : categories.map(cat => {
             const catMeals = meals.filter(m => (m.category || 'Lunch') === cat.key);
             if (catMeals.length === 0) return '';
             return `
@@ -1181,7 +1274,7 @@
                     <div>
                       <div class="flex items-center space-x-2">
                         <p class="text-sm font-bold text-white">${m.name}</p>
-                        <span class="text-[9px] bg-white/10 text-neutral-300 px-1.5 py-0.5 rounded-md font-mono">${formatDateDisplay(m.date || todayStr)}</span>
+                        <span class="text-[9px] bg-white/10 text-neutral-300 px-1.5 py-0.5 rounded-md font-mono">${formatDateDisplay(m.date)}</span>
                       </div>
                       <p class="text-xs text-neutral-400 mt-0.5">${m.calories} kcal • P: ${m.protein || 0}g | C: ${m.carbs || 0}g | F: ${m.fat || 0}g</p>
                     </div>
@@ -1200,7 +1293,7 @@
     function handleManualMealSubmit(e) {
       e.preventDefault();
       try {
-        const date = document.getElementById('manual-meal-date').value || getTodayString();
+        const date = document.getElementById('manual-meal-date').value || selectedDate;
         const name = document.getElementById('manual-meal-name').value;
         const category = document.getElementById('manual-meal-category').value;
         const calories = parseInt(document.getElementById('manual-meal-calories').value) || 0;
@@ -1219,6 +1312,7 @@
           fat
         });
 
+        selectedDate = date;
         saveState();
         renderView();
       } catch (err) {
@@ -1280,13 +1374,26 @@
     function renderFitness(container) {
       const runs = appState.fitness.runs || [];
       const totalKm = runs.reduce((acc, r) => acc + (r.distance || 0), 0).toFixed(1);
-      const todayStr = getTodayString();
 
       container.innerHTML = `
+        <!-- Date Selector Header Bar -->
+        <div class="bg-ios-card border border-white/10 rounded-2xl p-2.5 flex items-center justify-between text-xs font-semibold">
+          <button onclick="shiftSelectedDate(-1)" class="p-2 bg-ios-cardSecondary rounded-xl ios-active text-neutral-300 hover:text-white">
+            <i data-lucide="chevron-left" class="w-4 h-4"></i>
+          </button>
+          <div class="flex items-center space-x-2">
+            <i data-lucide="calendar" class="w-4 h-4 text-ios-blue"></i>
+            <input type="date" value="${selectedDate}" onchange="changeSelectedDate(this.value)" class="bg-transparent text-white font-bold text-center border-b border-white/20 pb-0.5 cursor-pointer focus:border-ios-blue">
+          </div>
+          <button onclick="shiftSelectedDate(1)" class="p-2 bg-ios-cardSecondary rounded-xl ios-active text-neutral-300 hover:text-white">
+            <i data-lucide="chevron-right" class="w-4 h-4"></i>
+          </button>
+        </div>
+
         <div class="bg-ios-card border border-white/10 rounded-[26px] p-5 space-y-3">
           <div class="flex justify-between items-center">
             <div>
-              <p class="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Total Jarak Lari</p>
+              <p class="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Total Jarak Lari (Akumulasi)</p>
               <h2 class="text-4xl font-extrabold mt-1 text-white">${totalKm} <span class="text-lg font-normal text-neutral-400">km</span></h2>
             </div>
             <div class="w-12 h-12 rounded-2xl bg-ios-purple/20 border border-ios-purple/30 flex items-center justify-center text-ios-purple">
@@ -1303,7 +1410,7 @@
           <form onsubmit="handleAddRun(event)" class="space-y-2 text-xs">
             <div>
               <label class="text-[10px] text-neutral-400 font-medium">Tanggal Sesi</label>
-              <input type="date" id="run-date" value="${todayStr}" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
+              <input type="date" id="run-date" value="${selectedDate}" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white mt-1">
             </div>
             <div class="grid grid-cols-2 gap-2">
               <input type="number" step="0.1" id="run-dist" placeholder="Jarak (km)" required class="bg-ios-cardSecondary border border-white/10 rounded-xl p-2.5 text-white">
@@ -1318,7 +1425,7 @@
         </div>
 
         <div class="space-y-2">
-          <h4 class="text-xs font-bold text-neutral-400 uppercase tracking-wider">Aktivitas Terbaru</h4>
+          <h4 class="text-xs font-bold text-neutral-400 uppercase tracking-wider">Aktivitas Sesi Lari</h4>
           ${runs.length === 0 ? `
             <div class="bg-ios-card border border-white/10 rounded-2xl p-4 text-center text-xs text-neutral-500 italic">Belum ada aktivitas lari dicatat.</div>
           ` : runs.slice().reverse().map(r => {
@@ -1332,7 +1439,7 @@
                   <form onsubmit="handleSaveEditedRun(event, '${r.id}')" class="space-y-2 text-xs">
                     <div>
                       <label class="text-[10px] text-neutral-400">Tanggal Sesi</label>
-                      <input type="date" id="edit-run-date" value="${r.date || todayStr}" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2 text-white mt-0.5">
+                      <input type="date" id="edit-run-date" value="${r.date || selectedDate}" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-2 text-white mt-0.5">
                     </div>
                     <div class="grid grid-cols-2 gap-2">
                       <div>
@@ -1385,7 +1492,7 @@
     function handleAddRun(e) {
       e.preventDefault();
       try {
-        const date = document.getElementById('run-date').value || getTodayString();
+        const date = document.getElementById('run-date').value || selectedDate;
         const dist = parseFloat(document.getElementById('run-dist').value) || 0;
         const dur = document.getElementById('run-time').value || '00:00';
         const hr = parseInt(document.getElementById('run-hr').value) || 0;
@@ -1401,6 +1508,7 @@
           calories: cal
         });
 
+        selectedDate = date;
         saveState();
         renderView();
       } catch (err) {
