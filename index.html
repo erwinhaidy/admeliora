@@ -6,11 +6,11 @@
   <title>Ad Meliora - Personal Transformation Engine</title>
   
   <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://unpkg.com/lucide@0.294.0"></script>
   <!-- Chart.js for iOS Style Smooth Graphs -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1"></script>
   <!-- html2canvas and jsPDF for Image and PDF Exporting -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -52,6 +52,11 @@
       -webkit-font-smoothing: antialiased;
       -webkit-tap-highlight-color: transparent;
       user-select: none;
+    }
+
+    input, textarea, select {
+      -webkit-user-select: text;
+      user-select: text;
     }
 
     .ios-blur {
@@ -299,6 +304,12 @@
           </div>
         </div>
 
+        <div class="p-3 bg-ios-cardSecondary border border-white/5 rounded-2xl space-y-1">
+          <label class="text-xs text-ios-purple font-bold">Gemini API Key (untuk scan foto makanan)</label>
+          <input type="password" id="user-gemini-key" autocomplete="off" placeholder="Tempel API key di sini" class="w-full bg-ios-card border border-white/10 rounded-xl px-3 py-2 text-white text-xs mt-1">
+          <p class="text-[10px] text-neutral-400">Disimpan hanya di perangkat ini dan tidak ikut file backup JSON.</p>
+        </div>
+
         <button onclick="saveProfile()" class="w-full py-3 bg-ios-blue text-white font-bold rounded-xl ios-active mt-2">
           Simpan Profil & Recalculate
         </button>
@@ -479,7 +490,8 @@
 
         bmr = Math.round(bmr);
         const tdee = Math.round(bmr * activity);
-        const targetCalories = Math.max(1200, tdee - deficit);
+        const minCalories = gender === 'male' ? 1500 : 1200; // batas bawah umum tanpa pengawasan medis
+        const targetCalories = Math.max(minCalories, tdee - deficit);
 
         return { bmr, tdee, targetCalories };
       } catch (e) {
@@ -498,8 +510,12 @@
         const runs = ((appState.fitness && appState.fitness.runs) || []).filter(r => r.date === dateStr);
         runs.forEach(r => {
           if (r.durationMinutes) {
-            workoutExtra += (r.durationMinutes || 0) * 12;
+            workoutExtra += (r.durationMinutes || 0) * RUN_WATER_ML_PER_MIN;
           }
+        });
+        const workoutSessions = ((appState.fitness && appState.fitness.workouts) || []).filter(w => w.date === dateStr);
+        workoutSessions.forEach(w => {
+          workoutExtra += (w.durationMinutes || 0) * WORKOUT_WATER_ML_PER_MIN;
         });
 
         return Math.round((baseHydration + workoutExtra) / 50) * 50;
@@ -554,17 +570,15 @@
         const dayMeals = (appState.meals || []).filter(m => m.date === dateStr);
         const totalCaloriesLogged = dayMeals.reduce((sum, m) => sum + (m.calories || 0), 0);
         
-        const runCalories = ((appState.fitness && appState.fitness.runs) || []).filter(r => r.date === dateStr).reduce((sum, r) => sum + (r.calories || 0), 0);
-        const workoutCalories = ((appState.fitness && appState.fitness.workouts) || []).filter(w => w.date === dateStr).reduce((sum, w) => sum + (w.calories || 0), 0);
-        const totalBurned = runCalories + workoutCalories;
-
-        const netCals = totalCaloriesLogged - totalBurned;
+        // Skor makan memakai kalori MASUK vs target. Kalori latihan tidak dikurangkan di sini
+        // karena multiplier aktivitas pada TDEE sudah memperhitungkan olahraga rutin.
         const { targetCalories } = calculateTDEE();
-        const calorieRatio = targetCalories > 0 ? (netCals / targetCalories) : 0;
-        
+        const calorieRatio = targetCalories > 0 ? (totalCaloriesLogged / targetCalories) : 0;
+
         let mealScore = 0;
-        if (calorieRatio >= 0.5 && calorieRatio <= 1.05) mealScore = 35;
-        else if (calorieRatio > 0) mealScore = 20;
+        if (calorieRatio >= 0.85 && calorieRatio <= 1.05) mealScore = 35;
+        else if ((calorieRatio >= 0.7 && calorieRatio < 0.85) || (calorieRatio > 1.05 && calorieRatio <= 1.15)) mealScore = 25;
+        else if (calorieRatio > 0) mealScore = 15;
 
         const hasRuns = ((appState.fitness && appState.fitness.runs) || []).filter(r => r.date === dateStr).length > 0;
         const hasWorkouts = ((appState.fitness && appState.fitness.workouts) || []).filter(w => w.date === dateStr).length > 0;
@@ -578,7 +592,7 @@
 
     function getWeeklyStats() {
       try {
-        const logs = appState.weightLogs || [];
+        const logs = (appState.weightLogs || []).slice().sort((x, y) => String(x.date).localeCompare(String(y.date)));
         if (logs.length === 0) {
           return {
             change7d: '0.00',
@@ -588,14 +602,18 @@
           };
         }
 
+        // Perubahan & rata-rata dihitung dari pengukuran dalam 7 hari sampai log terakhir.
+        const latest = logs[logs.length - 1];
+        const cutoff = new Date(latest.date + 'T00:00:00');
+        cutoff.setDate(cutoff.getDate() - 7);
+        const windowLogs = logs.filter(l => new Date(l.date + 'T00:00:00') >= cutoff);
+
+        const change7d = (latest.weight - windowLogs[0].weight).toFixed(2);
+        const sum = windowLogs.reduce((acc, curr) => acc + (curr.weight || 0), 0);
+        const avg7d = (sum / windowLogs.length).toFixed(2);
+
+        // Grafik tren tetap menampilkan 7 pengukuran terakhir agar garisnya terlihat.
         const recentLogs = logs.slice(-7);
-        const latestWeight = recentLogs[recentLogs.length - 1].weight;
-        const start7dWeight = recentLogs[0].weight;
-        const change7d = (latestWeight - start7dWeight).toFixed(2);
-
-        const sum = recentLogs.reduce((acc, curr) => acc + (curr.weight || 0), 0);
-        const avg7d = (sum / recentLogs.length).toFixed(2);
-
         const sparklineLabels = recentLogs.map(l => formatDateDisplay(l.date));
         const sparklineData = recentLogs.map(l => l.weight);
 
@@ -615,34 +633,144 @@
       }
     }
 
+    const GEMINI_MODEL = 'gemini-3-flash-preview'; // model preview bisa dihentikan Google; ganti di sini jika scan error 404
+    const GEMINI_KEY_STORAGE = 'ad_meliora_gemini_key';
+    const STATE_STORAGE_KEY = 'ad_meliora_ios_state';
+    const RUN_WATER_ML_PER_MIN = 12;
+    const WORKOUT_WATER_ML_PER_MIN = 6;
+
+    function escapeHtml(v) {
+      return String(v === null || v === undefined ? '' : v)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    function reportError(action, err) {
+      console.error(action, err);
+      alert(`Gagal ${action}. Muat ulang halaman lalu coba lagi.`);
+    }
+
+    function cloneDefault() {
+      return JSON.parse(JSON.stringify(DEFAULT_STATE));
+    }
+
+    function toNum(v, fallback = 0) {
+      const n = Number(v);
+      return Number.isFinite(n) ? n : fallback;
+    }
+    function isDateStr(v) { return /^\d{4}-\d{2}-\d{2}$/.test(String(v)); }
+    function safeId(v) {
+      return String(v === null || v === undefined ? '' : v).replace(/[^\w-]/g, '') || (Date.now().toString() + Math.floor(Math.random() * 10000));
+    }
+    function safeLabel(v) { return String(v === null || v === undefined ? '' : v).replace(/[<>"'&]/g, ''); }
+    function onlyObjects(arr) { return (Array.isArray(arr) ? arr : []).filter(x => x && typeof x === 'object'); }
+
+    // Dipakai untuk data dari localStorage DAN file backup: memvalidasi bentuk data
+    // supaya backup lama/rusak tidak merusak tampilan aplikasi.
+    function normalizeState(parsed) {
+      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+        throw new Error('Format data tidak valid');
+      }
+      const base = cloneDefault();
+      const p = parsed.profile && typeof parsed.profile === 'object' ? parsed.profile : {};
+      const profile = { ...base.profile, ...p };
+      ['age', 'height', 'weight', 'targetWeight', 'deficit', 'activity', 'targetWaist', 'currentWaist']
+        .forEach(k => { profile[k] = toNum(profile[k], base.profile[k]); });
+      profile.gender = profile.gender === 'female' ? 'female' : 'male';
+      profile.waterTargetMode = profile.waterTargetMode === 'custom' ? 'custom' : 'dynamic';
+
+      const w = parsed.water && typeof parsed.water === 'object' ? parsed.water : {};
+      const waterLogs = {};
+      if (parsed.waterLogs && typeof parsed.waterLogs === 'object' && !Array.isArray(parsed.waterLogs)) {
+        Object.keys(parsed.waterLogs).forEach(k => { if (isDateStr(k)) waterLogs[k] = Math.max(0, toNum(parsed.waterLogs[k])); });
+      }
+
+      const fit = parsed.fitness && typeof parsed.fitness === 'object' ? parsed.fitness : {};
+
+      const meals = onlyObjects(parsed.meals).filter(m => isDateStr(m.date)).map(m => ({
+        ...m,
+        id: safeId(m.id),
+        name: String(m.name === undefined || m.name === null ? '' : m.name),
+        category: safeLabel(m.category),
+        calories: toNum(m.calories), protein: toNum(m.protein), carbs: toNum(m.carbs), fat: toNum(m.fat)
+      }));
+
+      const runs = onlyObjects(fit.runs).filter(r => isDateStr(r.date)).map(r => ({
+        ...r,
+        id: safeId(r.id),
+        distance: toNum(r.distance), durationMinutes: toNum(r.durationMinutes),
+        durationFormatted: safeLabel(r.durationFormatted), duration: safeLabel(r.duration),
+        pace: safeLabel(r.pace === undefined ? '-' : r.pace),
+        heartRate: toNum(r.heartRate), calories: toNum(r.calories),
+        type: safeLabel(r.type === undefined ? 'Running' : r.type)
+      }));
+
+      const workouts = onlyObjects(fit.workouts).filter(x => isDateStr(x.date)).map(x => ({
+        ...x,
+        id: safeId(x.id),
+        title: String(x.title === undefined || x.title === null ? '' : x.title),
+        category: safeLabel(x.category),
+        durationMinutes: toNum(x.durationMinutes),
+        durationFormatted: safeLabel(x.durationFormatted), duration: safeLabel(x.duration),
+        calories: toNum(x.calories)
+      }));
+
+      const milestones = Array.isArray(parsed.milestones)
+        ? onlyObjects(parsed.milestones).map(m => ({
+            ...m, id: safeId(m.id), title: String(m.title === undefined || m.title === null ? '' : m.title),
+            targetValue: toNum(m.targetValue), type: safeLabel(m.type), completed: !!m.completed
+          }))
+        : base.milestones;
+
+      const weightLogs = Array.isArray(parsed.weightLogs)
+        ? onlyObjects(parsed.weightLogs)
+            .filter(l => isDateStr(l.date) && Number.isFinite(Number(l.weight)))
+            .map(l => ({ date: String(l.date), weight: Number(l.weight), waist: toNum(l.waist, base.profile.currentWaist) }))
+        : base.weightLogs;
+      weightLogs.sort((a, b) => a.date.localeCompare(b.date));
+
+      return {
+        ...base,
+        ...parsed,
+        profile,
+        water: { ...base.water, ...w, goal: toNum(w.goal, base.water.goal) },
+        waterLogs,
+        meals,
+        fitness: { runs, workouts },
+        milestones,
+        weightLogs,
+        subViews: { ...base.subViews, ...(parsed.subViews && typeof parsed.subViews === 'object' ? parsed.subViews : {}) }
+      };
+    }
+
     function loadAppState() {
+      let saved = null;
       try {
-        const saved = localStorage.getItem('ad_meliora_ios_state');
-        if (!saved) return DEFAULT_STATE;
-        const parsed = JSON.parse(saved);
-        return {
-          ...DEFAULT_STATE,
-          ...parsed,
-          profile: { ...DEFAULT_STATE.profile, ...(parsed.profile || {}) },
-          water: { ...DEFAULT_STATE.water, ...(parsed.water || {}) },
-          fitness: {
-            runs: parsed.fitness && parsed.fitness.runs ? parsed.fitness.runs : [],
-            workouts: parsed.fitness && parsed.fitness.workouts ? parsed.fitness.workouts : []
-          },
-          subViews: { ...DEFAULT_STATE.subViews, ...(parsed.subViews || {}) }
-        };
+        saved = localStorage.getItem(STATE_STORAGE_KEY);
+        if (!saved) return cloneDefault();
+        return normalizeState(JSON.parse(saved));
       } catch (e) {
-        return DEFAULT_STATE;
+        // Data rusak: simpan salinannya dulu supaya tidak tertimpa data default saat save berikutnya.
+        try { if (saved) localStorage.setItem(STATE_STORAGE_KEY + '_corrupt', saved); } catch (e2) {}
+        return cloneDefault();
       }
     }
 
     let appState = loadAppState();
 
+    let saveErrorShown = false;
     function saveState() {
       try {
-        localStorage.setItem('ad_meliora_ios_state', JSON.stringify(appState));
-        updateScoreDot();
-      } catch (e) {}
+        localStorage.setItem(STATE_STORAGE_KEY, JSON.stringify(appState));
+        saveErrorShown = false;
+      } catch (e) {
+        console.error('Save failed', e);
+        if (!saveErrorShown) {
+          saveErrorShown = true;
+          alert('Data gagal disimpan di perangkat (penyimpanan penuh atau diblokir browser). Unduh backup JSON sekarang lewat tombol bagikan di kanan atas agar data tidak hilang.');
+        }
+      }
+      updateScoreDot();
     }
 
     function openProfileModal() {
@@ -657,6 +785,7 @@
       document.getElementById('user-water-goal').value = appState.water.goal || 3000;
       
       toggleCustomWaterInput();
+      try { document.getElementById('user-gemini-key').value = localStorage.getItem(GEMINI_KEY_STORAGE) || ''; } catch (e) {}
       document.getElementById('profile-modal').style.display = 'flex';
     }
 
@@ -681,7 +810,13 @@
       appState.profile.deficit = parseInt(document.getElementById('user-deficit').value) || 500;
       appState.profile.waterTargetMode = document.getElementById('user-water-mode').value;
       appState.water.goal = parseInt(document.getElementById('user-water-goal').value) || 3000;
-      
+
+      try {
+        const key = document.getElementById('user-gemini-key').value.trim();
+        if (key) localStorage.setItem(GEMINI_KEY_STORAGE, key);
+        else localStorage.removeItem(GEMINI_KEY_STORAGE);
+      } catch (e) {}
+
       saveState();
       closeProfileModal();
       renderView();
@@ -704,38 +839,68 @@
         document.body.appendChild(downloadAnchor);
         downloadAnchor.click();
         downloadAnchor.remove();
-      } catch (e) {}
+      } catch (e) {
+        reportError('membuat file backup', e);
+      }
     }
 
     function uploadBackupFile(event) {
-      try {
-        const file = event.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          try {
-            appState = JSON.parse(e.target.result);
-            saveState();
-            renderView();
-            closeDriveSyncModal();
-          } catch (err) {}
-        };
-        reader.readAsText(file);
-      } catch (e) {}
+      const input = event.target;
+      const file = input.files && input.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const restored = normalizeState(JSON.parse(e.target.result));
+          if (!confirm('Pulihkan data dari file ini? Data yang ada di perangkat sekarang akan diganti.')) return;
+          appState = restored;
+          saveState();
+          renderView();
+          closeDriveSyncModal();
+        } catch (err) {
+          console.error('Restore failed', err);
+          alert('File backup tidak bisa dibaca. Pastikan ini file .json hasil "Unduh JSON" dari aplikasi ini.');
+        } finally {
+          input.value = '';
+        }
+      };
+      reader.onerror = function() {
+        alert('File tidak bisa dibuka. Coba pilih file lagi.');
+        input.value = '';
+      };
+      reader.readAsText(file);
+    }
+
+    // Menangkap seluruh isi tab (bukan hanya bagian yang terlihat di layar).
+    function captureSummary() {
+      const el = document.getElementById('app-content');
+      return html2canvas(el, {
+        backgroundColor: '#000000',
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        allowTaint: true,
+        height: el.scrollHeight,
+        windowHeight: el.scrollHeight,
+        scrollY: 0,
+        onclone: (doc) => {
+          const clone = doc.getElementById('app-content');
+          if (!clone) return;
+          let node = clone;
+          while (node && node !== doc.documentElement) {
+            node.style.overflow = 'visible';
+            node.style.height = 'auto';
+            node.style.maxHeight = 'none';
+            node = node.parentElement;
+          }
+        }
+      });
     }
 
     async function exportSummaryAsImage() {
-      const targetEl = document.getElementById('app-content');
-      if (!targetEl) return;
+      if (!document.getElementById('app-content') || !window.html2canvas) return;
       try {
-        const canvas = await html2canvas(targetEl, {
-          backgroundColor: '#000000',
-          scale: 2,
-          useCORS: true,
-          logging: false,
-          allowTaint: true
-        });
-        
+        const canvas = await captureSummary();
         const imageURI = canvas.toDataURL('image/png');
         const link = document.createElement('a');
         link.download = `ad_meliora_progress_${getTodayString()}.png`;
@@ -744,34 +909,41 @@
         link.click();
         setTimeout(() => link.remove(), 100);
       } catch (e) {
-        console.error("Export Image Error:", e);
+        reportError('mengekspor gambar', e);
       }
     }
 
     async function exportSummaryAsPDF() {
-      const targetEl = document.getElementById('app-content');
-      if (!targetEl || !window.jspdf) return;
+      if (!document.getElementById('app-content') || !window.jspdf || !window.html2canvas) return;
 
       try {
-        const canvas = await html2canvas(targetEl, {
-          backgroundColor: '#000000',
-          scale: 2,
-          useCORS: true,
-          logging: false,
-          allowTaint: true
-        });
-
+        const canvas = await captureSummary();
         const imgData = canvas.toDataURL('image/png');
         const { jsPDF } = window.jspdf;
         const pdf = new jsPDF('p', 'mm', 'a4');
         const imgProps = pdf.getImageProperties(imgData);
         const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
         const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
 
-        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+        // Bagi gambar panjang ke beberapa halaman A4 supaya tidak terpotong.
+        let heightLeft = pdfHeight;
+        let position = 0;
+        pdf.setFillColor(0, 0, 0);
+        pdf.rect(0, 0, pdfWidth, pageHeight, 'F');
+        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
+        heightLeft -= pageHeight;
+        while (heightLeft > 0) {
+          position = heightLeft - pdfHeight;
+          pdf.addPage();
+          pdf.setFillColor(0, 0, 0);
+          pdf.rect(0, 0, pdfWidth, pageHeight, 'F');
+          pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
+          heightLeft -= pageHeight;
+        }
         pdf.save(`ad_meliora_report_${getTodayString()}.pdf`);
       } catch (e) {
-        console.error("Export PDF Error:", e);
+        reportError('mengekspor PDF', e);
       }
     }
 
@@ -900,7 +1072,7 @@
               </div>
               <div>
                 <h3 class="text-xs font-bold uppercase tracking-wider text-neutral-400">Progress Seminggu Terakhir</h3>
-                <p class="text-xs text-white font-bold">Trend 7 Hari Terakhir</p>
+                <p class="text-xs text-white font-bold">Trend 7 Pengukuran Terakhir</p>
               </div>
             </div>
             <button onclick="switchTab('progress')" class="text-xs font-semibold text-ios-blue">Details</button>
@@ -1123,7 +1295,7 @@
                       ${m.completed ? '<i data-lucide="check" class="w-3.5 h-3.5 stroke-[3]"></i>' : ''}
                     </div>
                     <div>
-                      <p class="text-xs font-semibold ${m.completed ? 'line-through text-neutral-400' : 'text-white'}">${m.title}</p>
+                      <p class="text-xs font-semibold ${m.completed ? 'line-through text-neutral-400' : 'text-white'}">${escapeHtml(m.title)}</p>
                       <p class="text-[10px] text-ios-cyan mt-0.5">📅 Prediksi Target: <span class="font-bold">${m.completed ? 'Tercapai' : projectedDate}</span></p>
                     </div>
                   </div>
@@ -1133,6 +1305,7 @@
             }).join('')}
           </div>
         </div>
+        ${renderClearButtons('progress')}
       `;
 
       setTimeout(() => {
@@ -1185,7 +1358,7 @@
 
         saveState();
         renderView();
-      } catch (err) {}
+      } catch (err) { reportError('menyimpan data berat badan', err); }
     }
 
     function openEditWeightLog(dateStr) {
@@ -1227,6 +1400,7 @@
     }
 
     function deleteWeightLog(dateStr) {
+      if (!confirm(`Hapus pengukuran tanggal ${formatDateDisplay(dateStr)}?`)) return;
       appState.weightLogs = (appState.weightLogs || []).filter(l => l.date !== dateStr);
       saveState();
       renderView();
@@ -1378,7 +1552,7 @@
                   <div class="bg-ios-card border border-white/10 rounded-2xl p-3.5 flex justify-between items-center">
                     <div>
                       <div class="flex items-center space-x-2">
-                        <p class="text-sm font-bold text-white">${m.name}</p>
+                        <p class="text-sm font-bold text-white">${escapeHtml(m.name)}</p>
                         <span class="text-[9px] bg-white/10 text-neutral-300 px-1.5 py-0.5 rounded-md font-mono">${formatDateDisplay(m.date)}</span>
                       </div>
                       <p class="text-xs text-neutral-400 mt-0.5">${m.calories} kcal • P: ${m.protein || 0}g | C: ${m.carbs || 0}g | F: ${m.fat || 0}g</p>
@@ -1395,12 +1569,21 @@
             `;
           }).join('')}
         </div>
+        ${renderClearButtons('meals')}
       `;
     }
 
     async function handleFoodScan(event) {
       const file = event.target.files[0];
       if (!file) return;
+
+      let apiKey = '';
+      try { apiKey = (localStorage.getItem(GEMINI_KEY_STORAGE) || '').trim(); } catch (e) {}
+      if (!apiKey) {
+        alert('Scan foto butuh Gemini API key. Buka profil (ikon orang di kanan atas), isi Gemini API Key, lalu coba lagi. Atau catat makanan secara manual.');
+        event.target.value = '';
+        return;
+      }
 
       const loadingEl = document.getElementById('scan-loading');
       if (loadingEl) loadingEl.classList.remove('hidden');
@@ -1412,8 +1595,7 @@
             const base64Data = e.target.result.split(',')[1];
             const mimeType = file.type || 'image/jpeg';
 
-            const apiKey = ""; 
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
             const prompt = "Analyze this food image. Provide estimation for the meal name, estimated total calories (kcal), protein in grams, carbs in grams, and fat in grams. Respond strictly in valid JSON format with keys: name (string), calories (number), protein (number), carbs (number), fat (number).";
 
@@ -1432,10 +1614,15 @@
 
             const response = await fetch(apiUrl, {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
               body: JSON.stringify(payload)
             });
 
+            if (!response.ok) {
+              let detail = '';
+              try { const errBody = await response.json(); detail = (errBody && errBody.error && errBody.error.message) || ''; } catch (_) {}
+              throw new Error(`Server menjawab ${response.status}${detail ? ': ' + detail : ''}`);
+            }
             const result = await response.json();
             const candidate = result.candidates?.[0];
             if (candidate && candidate.content?.parts?.[0]?.text) {
@@ -1464,14 +1651,21 @@
               if (scanModal) {
                 scanModal.style.display = 'flex';
               }
+            } else {
+              throw new Error('AI tidak mengembalikan hasil (foto mungkin ditolak filter keamanan).');
             }
           } catch (parseErr) {
             console.error("AI Parse Error:", parseErr);
-            alert("Gagal memproses gambar dengan AI. Silakan catat secara manual.");
+            alert(`Gagal memproses foto: ${parseErr.message}. Periksa API key di profil, atau catat makanan secara manual.`);
           } finally {
             if (loadingEl) loadingEl.classList.add('hidden');
             event.target.value = '';
           }
+        };
+        reader.onerror = function() {
+          if (loadingEl) loadingEl.classList.add('hidden');
+          event.target.value = '';
+          alert('Foto tidak bisa dibuka. Coba pilih foto lain.');
         };
         reader.readAsDataURL(file);
       } catch (err) {
@@ -1525,7 +1719,7 @@
         selectedDate = date;
         saveState();
         renderView();
-      } catch (err) {}
+      } catch (err) { reportError('menyimpan makanan', err); }
     }
 
     function openEditMeal(id) {
@@ -1537,7 +1731,7 @@
         <form onsubmit="handleSaveEditMeal(event, '${id}')" class="space-y-3">
           <div>
             <label class="text-[10px] text-neutral-400 font-medium">Nama Makanan</label>
-            <input type="text" id="edit-meal-name" value="${meal.name}" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-3 text-white mt-1">
+            <input type="text" id="edit-meal-name" value="${escapeHtml(meal.name)}" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-3 text-white mt-1">
           </div>
           <div class="grid grid-cols-2 gap-2">
             <div>
@@ -1591,6 +1785,8 @@
     }
 
     function deleteMeal(id) {
+      const target = (appState.meals || []).find(m => m.id === id);
+      if (!confirm(`Hapus "${target ? target.name : 'makanan ini'}"?`)) return;
       appState.meals = (appState.meals || []).filter(m => m.id !== id);
       saveState();
       renderView();
@@ -1851,7 +2047,7 @@
             ` : workouts.map(w => `
               <div class="bg-ios-card border border-white/10 rounded-2xl p-4 flex justify-between items-center text-xs">
                 <div>
-                  <p class="text-base font-extrabold text-white">${w.title} <span class="text-xs font-normal text-ios-cyan">(${w.category})</span></p>
+                  <p class="text-base font-extrabold text-white">${escapeHtml(w.title)} <span class="text-xs font-normal text-ios-cyan">(${escapeHtml(w.category)})</span></p>
                   <p class="text-neutral-400 mt-0.5">Durasi: ${w.durationFormatted || w.duration} • ${w.calories || 0} kcal</p>
                   <span class="text-[10px] text-neutral-500">📅 ${formatDateDisplay(w.date)}</span>
                 </div>
@@ -1865,6 +2061,7 @@
             `).join('')}
           </div>
         `}
+        ${renderClearButtons('fitness')}
       `;
     }
 
@@ -1913,7 +2110,7 @@
         selectedDate = date;
         saveState();
         renderView();
-      } catch (err) {}
+      } catch (err) { reportError('menyimpan sesi lari', err); }
     }
 
     function openEditRun(id) {
@@ -1982,6 +2179,7 @@
     }
 
     function deleteRun(id) {
+      if (!confirm('Hapus sesi lari ini?')) return;
       if (appState.fitness && appState.fitness.runs) {
         appState.fitness.runs = appState.fitness.runs.filter(r => r.id !== id);
         saveState();
@@ -2018,7 +2216,7 @@
         selectedDate = date;
         saveState();
         renderView();
-      } catch (err) {}
+      } catch (err) { reportError('menyimpan workout', err); }
     }
 
     function openEditWorkout(id) {
@@ -2034,7 +2232,7 @@
         <form onsubmit="handleSaveEditWorkout(event, '${id}')" class="space-y-3">
           <div>
             <label class="text-[10px] text-neutral-400 font-medium">Judul / Fokus Latihan</label>
-            <input type="text" id="edit-wo-title" value="${workout.title}" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-3 text-white mt-1">
+            <input type="text" id="edit-wo-title" value="${escapeHtml(workout.title)}" required class="w-full bg-ios-cardSecondary border border-white/10 rounded-xl p-3 text-white mt-1">
           </div>
           <div>
             <label class="text-[10px] text-neutral-400 font-medium">Kategori</label>
@@ -2083,6 +2281,8 @@
     }
 
     function deleteWorkout(id) {
+      const target = ((appState.fitness && appState.fitness.workouts) || []).find(w => w.id === id);
+      if (!confirm(`Hapus workout "${target ? target.title : 'ini'}"?`)) return;
       if (appState.fitness && appState.fitness.workouts) {
         appState.fitness.workouts = appState.fitness.workouts.filter(w => w.id !== id);
         saveState();
@@ -2090,11 +2290,84 @@
       }
     }
 
+    // ---------- Hapus data massal ----------
+    function renderClearButtons(scope) {
+      const dayBtn = scope === 'progress' ? '' : `
+        <button onclick="clearDayData('${scope}')" class="w-full py-2.5 bg-ios-cardSecondary border border-white/10 rounded-xl text-ios-orange text-xs font-bold ios-active">
+          Hapus data tanggal ${formatDateDisplay(selectedDate)}
+        </button>`;
+      const allLabel = { progress: 'Hapus Semua Riwayat Pengukuran', meals: 'Hapus Semua Riwayat Makanan', fitness: 'Hapus Semua Riwayat Fitness' }[scope];
+      return `
+        <div class="bg-ios-card border border-ios-red/20 rounded-[24px] p-4 space-y-2">
+          <div>
+            <h4 class="text-xs font-bold text-ios-red uppercase tracking-wider">Hapus Data</h4>
+            <p class="text-[10px] text-neutral-400 mt-0.5">Tidak bisa dibatalkan. Unduh backup JSON dulu lewat tombol bagikan di kanan atas jika perlu.</p>
+          </div>
+          ${dayBtn}
+          <button onclick="clearAllHistory('${scope}')" class="w-full py-2.5 bg-ios-red/15 border border-ios-red/30 rounded-xl text-ios-red text-xs font-bold ios-active">
+            ${allLabel}
+          </button>
+        </div>`;
+    }
+
+    function clearDayData(scope) {
+      const d = selectedDate;
+      const dayLabel = formatDateDisplay(d);
+      if (scope === 'meals') {
+        const n = (appState.meals || []).filter(m => m.date === d).length;
+        if (n === 0) { alert(`Tidak ada catatan makanan pada ${dayLabel}.`); return; }
+        if (!confirm(`Hapus ${n} catatan makanan pada ${dayLabel}? Tindakan ini tidak bisa dibatalkan.`)) return;
+        appState.meals = appState.meals.filter(m => m.date !== d);
+      } else if (scope === 'fitness') {
+        const runs = (appState.fitness && appState.fitness.runs) || [];
+        const workouts = (appState.fitness && appState.fitness.workouts) || [];
+        const nr = runs.filter(r => r.date === d).length;
+        const nw = workouts.filter(w => w.date === d).length;
+        if (nr + nw === 0) { alert(`Tidak ada sesi lari atau workout pada ${dayLabel}.`); return; }
+        if (!confirm(`Hapus ${nr} sesi lari dan ${nw} workout pada ${dayLabel}? Tindakan ini tidak bisa dibatalkan.`)) return;
+        appState.fitness.runs = runs.filter(r => r.date !== d);
+        appState.fitness.workouts = workouts.filter(w => w.date !== d);
+      } else {
+        return;
+      }
+      saveState();
+      renderView();
+    }
+
+    function clearAllHistory(scope) {
+      let count = 0;
+      let what = '';
+      if (scope === 'progress') {
+        count = (appState.weightLogs || []).length;
+        what = `${count} pengukuran berat dan pinggang`;
+      } else if (scope === 'meals') {
+        count = (appState.meals || []).length;
+        what = `${count} catatan makanan`;
+      } else if (scope === 'fitness') {
+        const nr = ((appState.fitness && appState.fitness.runs) || []).length;
+        const nw = ((appState.fitness && appState.fitness.workouts) || []).length;
+        count = nr + nw;
+        what = `${nr} sesi lari dan ${nw} workout`;
+      } else {
+        return;
+      }
+      if (count === 0) { alert('Belum ada data untuk dihapus.'); return; }
+      if (!confirm(`Hapus SEMUA riwayat: ${what}?\n\nTindakan ini tidak bisa dibatalkan. Sebaiknya unduh backup JSON dulu.`)) return;
+      if (!confirm('Yakin? Data yang dihapus tidak bisa dikembalikan.')) return;
+
+      if (scope === 'progress') appState.weightLogs = [];
+      else if (scope === 'meals') appState.meals = [];
+      else appState.fitness = { runs: [], workouts: [] };
+
+      saveState();
+      renderView();
+    }
+
     window.onload = function() {
       try {
         renderView();
         updateScoreDot();
-      } catch (e) {}
+      } catch (e) { console.error(e); }
     };
   </script>
 </body>
